@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DraggablePiece } from "./style";
+import { DraggablePiece } from "../style";
 
 export interface IPieceCoordinate {
   x: number;

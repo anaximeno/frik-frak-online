@@ -37,7 +37,7 @@ export const StyledCell = styled.div<
   justify-content: center;
   border-radius: 50%;
   cursor: pointer;
-  background-color: gray;
+  background-color: #FFFFFF;
   user-select: none;
   transform: translate(-50%, -50%);
 `;

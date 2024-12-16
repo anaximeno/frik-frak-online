@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { StyledCell } from "./style";
+import { StyledCell } from "../style";
 
 interface ICellProps {
   key?: string;
