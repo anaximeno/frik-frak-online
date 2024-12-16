@@ -30,13 +30,13 @@ interface IPiecePositionStates {
 }
 
 const FrikFrakPage = () => {
-  const [pieceCoordinateStates, setPieceCoodinateStates] =
+  const [piecePositionStates, setPiecePositionStates] =
     useState<IPiecePositionStates>({});
 
   const [selectedPieceId, setSelectedPieceId] = useState<string | null>(null);
 
-  const updatePieceAtCoordinate = (pieceId: string, pos: IPieceCoordinate) => {
-    setPieceCoodinateStates((prevItems) => ({
+  const updatePieceToPosition = (pieceId: string, pos: IPiecePosition) => {
+    setPiecePositionStates((prevItems) => ({
       ...prevItems,
       [pieceId]: { ...pos },
     }));
@@ -48,16 +48,16 @@ const FrikFrakPage = () => {
 
     if (!json && !json.from && !json.from.id) return;
 
-    updatePieceAtCoordinate(json.from.id, {
+    updatePieceToPosition(json.from.id, {
       i,
-      y,
+      j,
     });
   };
 
   const handleOnCellClick = (i: number, j: number) => {
     if (selectedPieceId) {
       // TODO: check if this cell is a valid space for putting the selected piece
-      updatePieceAtCoordinate(selectedPieceId, {
+      updatePieceToPosition(selectedPieceId, {
         i,
         j,
       });
@@ -66,8 +66,8 @@ const FrikFrakPage = () => {
     }
 
     for (const id of ["u_Piece_0", "u_Piece_1", "u_Piece_2"]) {
-      if (!(id in pieceCoordinateStates)) {
-        updatePieceAtCoordinate(id, {
+      if (!(id in piecePositionStates)) {
+        updatePieceToPosition(id, {
           i,
           j,
         });
@@ -108,21 +108,23 @@ const FrikFrakPage = () => {
               />
             ))
           )}
-          {Object.entries(pieceCoordinateStates).map(
+          {Object.entries(piecePositionStates).map(
             ([pieceStateId, pieceStateValue]) => {
-		    const coordinate = CELL_POSITIONS[pieceStateValue.i][pieceStateValue.j];
-		    return (
-              <Piece
-                id={pieceStateId}
-                x={coordinate.x * 3}
-                y={coordinate.y * 3}
-                isSelected={selectedPieceId === pieceStateId}
-                onClick={() => setSelectedPieceId(pieceStateId)}
-                onDragStart={(_) => resetPieceSelection()}
-                color="blue"
-                draggable
-              />
-            );}
+              const coordinate =
+                CELL_POSITIONS[pieceStateValue.i][pieceStateValue.j];
+              return (
+                <Piece
+                  id={pieceStateId}
+                  x={coordinate.x * 3}
+                  y={coordinate.y * 3}
+                  isSelected={selectedPieceId === pieceStateId}
+                  onClick={() => setSelectedPieceId(pieceStateId)}
+                  onDragStart={(_) => resetPieceSelection()}
+                  color="blue"
+                  draggable
+                />
+              );
+            }
           )}
         </Board>
       </Box>
