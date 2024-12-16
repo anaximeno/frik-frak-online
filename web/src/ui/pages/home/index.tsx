@@ -8,7 +8,7 @@ const HomePage = () => {
   const navigate = useNavigate();
 
   const handlePlayClick = () => {
-    navigate("/frik-frak");
+    navigate("/frik-frak/play");
   };
 
   return (

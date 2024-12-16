@@ -64,7 +64,7 @@ const FrikFrakPage = () => {
         x: target.x * 3,
         y: target.y * 3,
       });
-      setSelectedPieceId(null);
+      resetPieceSelection();
       return;
     }
 
@@ -79,12 +79,12 @@ const FrikFrakPage = () => {
     }
   };
 
-  const handleBackgroundClick = (event: React.MouseEvent) => {
+  const resetPieceSelection = () => {
     if (selectedPieceId) setSelectedPieceId(null);
   };
 
   return (
-    <BackgroundImage image={background} onClick={handleBackgroundClick}>
+    <BackgroundImage image={background} onClick={(_) => resetPieceSelection()}>
       <Box paddingTop="200px">
         <Board>
           <Line style={{ transform: "rotate(45deg)", width: "150%" }} />
@@ -116,6 +116,7 @@ const FrikFrakPage = () => {
                 y={pieceStateValue.y}
                 isSelected={selectedPieceId === pieceStateId}
                 onClick={() => setSelectedPieceId(pieceStateId)}
+                onDragStart={(_) => resetPieceSelection()}
                 color="blue"
                 draggable
               />

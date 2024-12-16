@@ -12,6 +12,8 @@ interface IPieceProps extends IPieceCoordinate {
   isSelected?: boolean;
   color?: string;
   onClick?: (event: React.MouseEvent) => void;
+  onDragStart?: (event: React.DragEvent) => void;
+  onDragEnd?: (event: React.DragEvent) => void;
 }
 
 const Piece = (props: IPieceProps) => {
@@ -29,10 +31,12 @@ const Piece = (props: IPieceProps) => {
         },
       })
     );
+    props.onDragStart?.(event);
   };
 
   const handleDragEnd = (event: React.DragEvent) => {
     setIsDragging(false);
+    props.onDragEnd?.(event);
   };
 
   return (
