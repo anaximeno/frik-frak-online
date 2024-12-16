@@ -9,9 +9,10 @@ Currently, two official plugins are available:
 
 ## How to run
 
-To run the project for development, first make sure you have [DenoJS installed and configured](https://docs.deno.com/runtime/):
+To run the project for development, first, make sure you have NodeJS installed with yarn enabled and then run:
 
 ```sh
+yarn install
 yarn run dev
 ```
 
