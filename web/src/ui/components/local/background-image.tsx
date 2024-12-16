@@ -1,8 +1,9 @@
 import { Box } from "@chakra-ui/react";
 
 interface IBackgroundImageProps {
-  children?: React.ReactNode;
   image: string;
+  children?: React.ReactNode;
+  onClick?: (event: React.MouseEvent) => void;
 }
 
 const BackgroundImage = (props: IBackgroundImageProps) => {
@@ -15,6 +16,7 @@ const BackgroundImage = (props: IBackgroundImageProps) => {
         backgroundPosition: "center",
       }}
       height="100vh"
+      onClick={props.onClick}
     >
       {props.children}
     </Box>

@@ -37,22 +37,30 @@ export const StyledCell = styled.div<
   justify-content: center;
   border-radius: 50%;
   cursor: pointer;
-  background-color: #FFFFFF;
+  background-color: #BBBBBB;
   user-select: none;
   transform: translate(-50%, -50%);
+
+  &:hover {
+    background-color: #CCCCCC;
+  }
 `;
 
-export const DraggablePiece = styled.div<
-  ICoordinatableComponentProps & { isDragging: boolean }
->`
+interface IDraggablePieceProps extends ICoordinatableComponentProps {
+  isDragging?: boolean;
+  isSelected?: boolean;
+}
+
+export const DraggablePiece = styled.div<IDraggablePieceProps>`
   position: absolute;
   left: ${(props) => props.x}px;
   top: ${(props) => props.y}px;
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background-color: ${(props) => props.color ?? "red"};
+  background-color: ${(props) => props.color ?? "blue"};
   cursor: grab;
   user-select: none;
   transform: translate(-50%, -50%);
+  opacity: ${(props) => props.isSelected ? 0.7 : 1};
 `;

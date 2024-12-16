@@ -1,5 +1,6 @@
 # TODO
 
+- [ ] Piece can only move to available adjacent positions
 - [ ] Store game data in the backend
 - [ ] Implement multiplayer process
 - [ ] Stylize playing room

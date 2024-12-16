@@ -9,7 +9,9 @@ export interface IPieceCoordinate {
 interface IPieceProps extends IPieceCoordinate {
   id: string;
   draggable?: boolean;
+  isSelected?: boolean;
   color?: string;
+  onClick?: (event: React.MouseEvent) => void;
 }
 
 const Piece = (props: IPieceProps) => {
@@ -39,8 +41,10 @@ const Piece = (props: IPieceProps) => {
       x={props.x}
       y={props.y}
       isDragging={isDragging}
+      isSelected={props.isSelected}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onClick={props.onClick}
       color={props.color}
     />
   );

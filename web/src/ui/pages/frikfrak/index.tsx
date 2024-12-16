@@ -32,6 +32,8 @@ const FrikFrakPage = () => {
   const [pieceCoordinateStates, setPieceCoodinateStates] =
     useState<IPieceCoodineteStates>({});
 
+  const [selectedPieceId, setSelectedPieceId] = useState<string | null>(null);
+
   const updatePieceAtCoordinate = (pieceId: string, pos: IPieceCoordinate) => {
     setPieceCoodinateStates((prevItems) => ({
       ...prevItems,
@@ -55,6 +57,17 @@ const FrikFrakPage = () => {
 
   const handleOnCellClick = (i: number, j: number, event: React.MouseEvent) => {
     const target = CELL_POSITIONS[i][j];
+
+    if (selectedPieceId) {
+      // TODO: check if this cell is a valid space for putting the selected piece
+      updatePieceAtCoordinate(selectedPieceId, {
+        x: target.x * 3,
+        y: target.y * 3,
+      });
+      setSelectedPieceId(null);
+      return;
+    }
+
     for (const id of ["u_Piece_0", "u_Piece_1", "u_Piece_2"]) {
       if (!(id in pieceCoordinateStates)) {
         updatePieceAtCoordinate(id, {
@@ -66,8 +79,12 @@ const FrikFrakPage = () => {
     }
   };
 
+  const handleBackgroundClick = (event: React.MouseEvent) => {
+    if (selectedPieceId) setSelectedPieceId(null);
+  };
+
   return (
-    <BackgroundImage image={background}>
+    <BackgroundImage image={background} onClick={handleBackgroundClick}>
       <Box paddingTop="200px">
         <Board>
           <Line style={{ transform: "rotate(45deg)", width: "150%" }} />
@@ -97,6 +114,8 @@ const FrikFrakPage = () => {
                 id={pieceStateId}
                 x={pieceStateValue.x}
                 y={pieceStateValue.y}
+                isSelected={selectedPieceId === pieceStateId}
+                onClick={() => setSelectedPieceId(pieceStateId)}
                 color="blue"
                 draggable
               />
