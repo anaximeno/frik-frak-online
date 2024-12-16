@@ -6,6 +6,11 @@ export interface IPieceCoordinate {
   y: number;
 }
 
+export interface IPiecePosition {
+  i: number;
+  j: number;
+}
+
 interface IPieceProps extends IPieceCoordinate {
   id: string;
   draggable?: boolean;

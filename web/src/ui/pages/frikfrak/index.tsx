@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Line, Board } from "./style";
 import Cell from "./components/cell";
-import Piece, { IPieceCoordinate } from "./components/piece";
+import Piece, { IPieceCoordinate, IPiecePosition } from "./components/piece";
 import background from "../../../assets/background-02.webp";
 import { Box } from "@chakra-ui/react";
 import BackgroundImageContainer from "../../components/local/background-image-container";
@@ -25,13 +25,13 @@ const CELL_POSITIONS: IPieceCoordinate[][] = [
   ],
 ];
 
-interface IPieceCoodineteStates {
-  [key: string]: IPieceCoordinate;
+interface IPiecePositionStates {
+  [key: string]: IPiecePosition;
 }
 
 const FrikFrakPage = () => {
   const [pieceCoordinateStates, setPieceCoodinateStates] =
-    useState<IPieceCoodineteStates>({});
+    useState<IPiecePositionStates>({});
 
   const [selectedPieceId, setSelectedPieceId] = useState<string | null>(null);
 
@@ -48,22 +48,18 @@ const FrikFrakPage = () => {
 
     if (!json && !json.from && !json.from.id) return;
 
-    const target = CELL_POSITIONS[i][j];
-
     updatePieceAtCoordinate(json.from.id, {
-      x: target.x * 3,
-      y: target.y * 3,
+      i,
+      y,
     });
   };
 
   const handleOnCellClick = (i: number, j: number) => {
-    const target = CELL_POSITIONS[i][j];
-
     if (selectedPieceId) {
       // TODO: check if this cell is a valid space for putting the selected piece
       updatePieceAtCoordinate(selectedPieceId, {
-        x: target.x * 3,
-        y: target.y * 3,
+        i,
+        j,
       });
       resetPieceSelection();
       return;
@@ -72,8 +68,8 @@ const FrikFrakPage = () => {
     for (const id of ["u_Piece_0", "u_Piece_1", "u_Piece_2"]) {
       if (!(id in pieceCoordinateStates)) {
         updatePieceAtCoordinate(id, {
-          x: target.x * 3,
-          y: target.y * 3,
+          i,
+          j,
         });
         break;
       }
@@ -113,18 +109,20 @@ const FrikFrakPage = () => {
             ))
           )}
           {Object.entries(pieceCoordinateStates).map(
-            ([pieceStateId, pieceStateValue]) => (
+            ([pieceStateId, pieceStateValue]) => {
+		    const coordinate = CELL_POSITIONS[pieceStateValue.i][pieceStateValue.j];
+		    return (
               <Piece
                 id={pieceStateId}
-                x={pieceStateValue.x}
-                y={pieceStateValue.y}
+                x={coordinate.x * 3}
+                y={coordinate.y * 3}
                 isSelected={selectedPieceId === pieceStateId}
                 onClick={() => setSelectedPieceId(pieceStateId)}
                 onDragStart={(_) => resetPieceSelection()}
                 color="blue"
                 draggable
               />
-            )
+            );}
           )}
         </Board>
       </Box>
