@@ -1,8 +1,8 @@
 import { HStack, VStack, Heading } from "@chakra-ui/react";
 import { Button } from "../../components/chakra/button";
 import { useNavigate } from "react-router-dom";
-import BackgroundImage from "../../components/local/background-image";
-import background from "../../../assets/background-02.webp";
+import BackgroundImageContainer from "../../components/local/background-image-container";
+import background from "../../../assets/background-01.webp";
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -11,17 +11,24 @@ const HomePage = () => {
     navigate("/frik-frak/play");
   };
 
+  const handleWatchClick = () => {
+    navigate("/frik-frak/watch");
+  };
+
   return (
-    <BackgroundImage image={background}>
+    <BackgroundImageContainer image={background}>
       <VStack paddingTop={100}>
         <Heading size="7xl">Frik Frak Online</Heading>
         <HStack marginTop={10}>
-          <Button size="2xl" onClick={(_) => handlePlayClick()}>
+          <Button size="2xl" onClick={handleWatchClick}>
+            Assistir
+          </Button>
+          <Button size="2xl" onClick={handlePlayClick}>
             Jogar
           </Button>
         </HStack>
       </VStack>
-    </BackgroundImage>
+    </BackgroundImageContainer>
   );
 };
 

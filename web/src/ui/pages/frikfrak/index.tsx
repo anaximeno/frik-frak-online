@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from "react";
 import { Line, Board } from "./style";
 import Cell from "./components/cell";
 import Piece, { IPieceCoordinate } from "./components/piece";
-import background from "../../../assets/background-01.webp";
+import background from "../../../assets/background-02.webp";
 import { Box } from "@chakra-ui/react";
-import BackgroundImage from "../../components/local/background-image";
+import BackgroundImageContainer from "../../components/local/background-image-container";
 
 const CELL_POSITIONS: IPieceCoordinate[][] = [
   [
@@ -55,7 +56,7 @@ const FrikFrakPage = () => {
     });
   };
 
-  const handleOnCellClick = (i: number, j: number, event: React.MouseEvent) => {
+  const handleOnCellClick = (i: number, j: number) => {
     const target = CELL_POSITIONS[i][j];
 
     if (selectedPieceId) {
@@ -84,7 +85,10 @@ const FrikFrakPage = () => {
   };
 
   return (
-    <BackgroundImage image={background} onClick={(_) => resetPieceSelection()}>
+    <BackgroundImageContainer
+      image={background}
+      onClick={(_) => resetPieceSelection()}
+    >
       <Box paddingTop="200px">
         <Board>
           <Line style={{ transform: "rotate(45deg)", width: "150%" }} />
@@ -104,7 +108,7 @@ const FrikFrakPage = () => {
                 x={cell.x}
                 y={cell.y}
                 onDropItem={(e) => handleOnCellDrop(i, j, e)}
-                onClick={(e) => handleOnCellClick(i, j, e)}
+                onClick={() => handleOnCellClick(i, j)}
               />
             ))
           )}
@@ -124,7 +128,7 @@ const FrikFrakPage = () => {
           )}
         </Board>
       </Box>
-    </BackgroundImage>
+    </BackgroundImageContainer>
   );
 };
 

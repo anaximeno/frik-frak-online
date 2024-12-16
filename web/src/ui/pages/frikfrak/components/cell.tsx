@@ -17,11 +17,11 @@ const Cell = (props: ICellProps) => {
     event.stopPropagation();
   };
 
-  const handleDragEnter = (event: React.DragEvent) => {
+  const handleDragEnter = () => {
     setIsOver(true);
   };
 
-  const handleDragLeave = (event: React.DragEvent) => {
+  const handleDragLeave = () => {
     setIsOver(false);
   };
 

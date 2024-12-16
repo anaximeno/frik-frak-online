@@ -1,12 +1,12 @@
 import { Box } from "@chakra-ui/react";
 
-interface IBackgroundImageProps {
+interface IBackgroundImageContainerProps {
   image: string;
   children?: React.ReactNode;
   onClick?: (event: React.MouseEvent) => void;
 }
 
-const BackgroundImage = (props: IBackgroundImageProps) => {
+const BackgroundImageContainer = (props: IBackgroundImageContainerProps) => {
   return (
     <Box
       bgImage={`url('${props.image}')`}
@@ -23,4 +23,4 @@ const BackgroundImage = (props: IBackgroundImageProps) => {
   );
 };
 
-export default BackgroundImage;
+export default BackgroundImageContainer;
