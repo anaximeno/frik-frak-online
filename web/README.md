@@ -12,7 +12,7 @@ Currently, two official plugins are available:
 To run the project for development, first make sure you have [DenoJS installed and configured](https://docs.deno.com/runtime/):
 
 ```sh
-deno task dev
+yarn run dev
 ```
 
 ## Expanding the ESLint configuration
