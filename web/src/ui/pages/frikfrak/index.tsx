@@ -1,21 +1,67 @@
-import { Line, Cell, Board } from "./style";
+import React, { useState } from "react";
+import { Line, Board } from "./style";
+import Cell from "./cell";
+import Piece, { IPieceCoordinate } from "./piece";
+
+const CELL_POSITIONS: IPieceCoordinate[][] = [
+  [
+    { x: 0, y: 0 },
+    { x: 50, y: 0 },
+    { x: 100, y: 0 },
+  ],
+  [
+    { x: 0, y: 50 },
+    { x: 50, y: 50 },
+    { x: 100, y: 50 },
+  ],
+  [
+    { x: 0, y: 100 },
+    { x: 50, y: 100 },
+    { x: 100, y: 100 },
+  ],
+];
+
+interface IPieceCoodineteStates {
+  [key: string]: IPieceCoordinate;
+}
 
 const FrikFrakPage = () => {
-  const handleClick = (index: number) => {
-    // TODO
+  const [pieceCoordinateStates, setPieceCoodinateStates] =
+    useState<IPieceCoodineteStates>({});
+
+  const updatePieceAtCoordinate = (pieceId: string, pos: IPieceCoordinate) => {
+    setPieceCoodinateStates((prevItems) => ({
+      ...prevItems,
+      [pieceId]: { ...pos },
+    }));
   };
 
-  const cellPositions = [
-    { x: 0, y: 0 }, // top left
-    { x: 50, y: 0 }, // top center
-    { x: 100, y: 0 }, // top right
-    { x: 0, y: 50 }, // mid left
-    { x: 50, y: 50 }, // mid center
-    { x: 100, y: 50 }, // mid right
-    { x: 0, y: 100 }, // bottom left
-    { x: 50, y: 100 }, // bottom center
-    { x: 100, y: 100 }, // bottom right
-  ];
+  const handleOnCellDrop = (i: number, j: number, event: React.DragEvent) => {
+    const data = event.dataTransfer.getData("application/json");
+    const json = JSON.parse(data);
+
+    if (!json && !json.from && !json.from.id) return;
+
+    const target = CELL_POSITIONS[i][j];
+
+    updatePieceAtCoordinate(json.from.id, {
+      x: target.x * 3,
+      y: target.y * 3,
+    });
+  };
+
+  const handleOnCellClick = (i: number, j: number, event: React.MouseEvent) => {
+    const target = CELL_POSITIONS[i][j];
+    for (const id of ["u_Piece_0", "u_Piece_1", "u_Piece_2"]) {
+      if (!(id in pieceCoordinateStates)) {
+        updatePieceAtCoordinate(id, {
+          x: target.x * 3,
+          y: target.y * 3,
+        });
+        break;
+      }
+    }
+  };
 
   return (
     <div style={{ marginTop: "200px" }}>
@@ -28,16 +74,28 @@ const FrikFrakPage = () => {
         <Line style={{ translate: "0px -150px" }} />
         <Line />
         <Line style={{ translate: "0px 150px" }} />
-        {cellPositions.map((value, index) => (
-          <Cell
-            key={index}
-            x={value.x}
-            y={value.y}
-            onClick={() => handleClick(index)}
-          >
-            {/* {value} */}
-          </Cell>
-        ))}
+        {CELL_POSITIONS.map((items, i) =>
+          items.map((cell, j) => (
+            <Cell
+              key={`${i}-${j}`}
+              x={cell.x}
+              y={cell.y}
+              onDropItem={(e) => handleOnCellDrop(i, j, e)}
+              onClick={(e) => handleOnCellClick(i, j, e)}
+            />
+          ))
+        )}
+        {Object.entries(pieceCoordinateStates).map(
+          ([pieceStateId, pieceStateValue]) => (
+            <Piece
+              id={pieceStateId}
+              x={pieceStateValue.x}
+              y={pieceStateValue.y}
+              color="blue"
+              draggable
+            />
+          )
+        )}
       </Board>
     </div>
   );

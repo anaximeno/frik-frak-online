@@ -1,5 +1,10 @@
 import styled from "styled-components";
 
+interface ICoordinatableComponentProps {
+  x: number;
+  y: number;
+}
+
 export const Board = styled.div`
   position: relative;
   width: 300px;
@@ -19,7 +24,9 @@ export const Line = styled.div`
   transform-origin: center;
 `;
 
-export const Cell = styled.div<{ x: number; y: number }>`
+export const StyledCell = styled.div<
+  ICoordinatableComponentProps & { isOver: boolean }
+>`
   position: absolute;
   left: ${(props) => props.x}%;
   top: ${(props) => props.y}%;
@@ -28,20 +35,24 @@ export const Cell = styled.div<{ x: number; y: number }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
   border-radius: 50%;
-  cursor: grab;
-  background-color: red;
+  cursor: pointer;
+  background-color: gray;
   user-select: none;
-  transition: background-color 0.2s;
-    transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+`;
 
-    &:hover {
-        background-color: #f0f0f0;
-    }
-
-    &:active{
-        background-color: #e0e0e0;
-    }
-
+export const DraggablePiece = styled.div<
+  ICoordinatableComponentProps & { isDragging: boolean }
+>`
+  position: absolute;
+  left: ${(props) => props.x}px;
+  top: ${(props) => props.y}px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: ${(props) => props.color ?? "red"};
+  cursor: grab;
+  user-select: none;
+  transform: translate(-50%, -50%);
 `;
