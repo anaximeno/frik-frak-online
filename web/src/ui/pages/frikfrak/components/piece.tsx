@@ -11,7 +11,7 @@ export interface IPiecePosition {
   j: number;
 }
 
-interface IPieceProps extends IPieceCoordinate {
+interface IPieceProps extends IPieceCoordinate, IPiecePosition {
   id: string;
   draggable?: boolean;
   isSelected?: boolean;
@@ -33,6 +33,8 @@ const Piece = (props: IPieceProps) => {
           id: props.id,
           x: props.x,
           y: props.y,
+          i: props.i,
+          j: props.j,
         },
       })
     );

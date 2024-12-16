@@ -29,11 +29,17 @@ interface IPiecePositionStates {
   [key: string]: IPiecePosition;
 }
 
+interface ISelectedPiece extends IPiecePosition {
+  id: string;
+}
+
 const FrikFrakPage = () => {
   const [piecePositionStates, setPiecePositionStates] =
     useState<IPiecePositionStates>({});
 
-  const [selectedPieceId, setSelectedPieceId] = useState<string | null>(null);
+  const [selectedPiece, setSelectedPiece] = useState<ISelectedPiece | null>(
+    null
+  );
 
   const updatePieceToPosition = (pieceId: string, pos: IPiecePosition) => {
     setPiecePositionStates((prevItems) => ({
@@ -42,11 +48,25 @@ const FrikFrakPage = () => {
     }));
   };
 
+  const checkPieceMoveIsValid = (
+    from: IPiecePosition,
+    to: IPiecePosition
+  ): boolean => {
+    if (Math.abs(to.i - from.i) <= 1 && Math.abs(to.j - from.j) <= 1)
+      return true;
+    return false;
+  };
+
   const handleOnCellDrop = (i: number, j: number, event: React.DragEvent) => {
     const data = event.dataTransfer.getData("application/json");
     const json = JSON.parse(data);
 
     if (!json && !json.from && !json.from.id) return;
+
+    if (!checkPieceMoveIsValid(json.from, { i, j })) {
+      // TODO: alert use this is not allowed?
+      return;
+    }
 
     updatePieceToPosition(json.from.id, {
       i,
@@ -55,9 +75,13 @@ const FrikFrakPage = () => {
   };
 
   const handleOnCellClick = (i: number, j: number) => {
-    if (selectedPieceId) {
-      // TODO: check if this cell is a valid space for putting the selected piece
-      updatePieceToPosition(selectedPieceId, {
+    if (selectedPiece) {
+      if (!checkPieceMoveIsValid(selectedPiece, { i, j })) {
+        // TODO: alert use this is not allowed?
+        return;
+      }
+
+      updatePieceToPosition(selectedPiece.id, {
         i,
         j,
       });
@@ -77,7 +101,7 @@ const FrikFrakPage = () => {
   };
 
   const resetPieceSelection = () => {
-    if (selectedPieceId) setSelectedPieceId(null);
+    if (selectedPiece) setSelectedPiece(null);
   };
 
   return (
@@ -108,24 +132,23 @@ const FrikFrakPage = () => {
               />
             ))
           )}
-          {Object.entries(piecePositionStates).map(
-            ([pieceStateId, pieceStateValue]) => {
-              const coordinate =
-                CELL_POSITIONS[pieceStateValue.i][pieceStateValue.j];
-              return (
-                <Piece
-                  id={pieceStateId}
-                  x={coordinate.x * 3}
-                  y={coordinate.y * 3}
-                  isSelected={selectedPieceId === pieceStateId}
-                  onClick={() => setSelectedPieceId(pieceStateId)}
-                  onDragStart={(_) => resetPieceSelection()}
-                  color="blue"
-                  draggable
-                />
-              );
-            }
-          )}
+          {Object.entries(piecePositionStates).map(([id, value]) => {
+            const coordinate = CELL_POSITIONS[value.i][value.j];
+            return (
+              <Piece
+                id={id}
+                x={coordinate.x * 3}
+                y={coordinate.y * 3}
+                isSelected={selectedPiece?.id === id}
+                onClick={() => setSelectedPiece({ id, i: value.i, j: value.j })}
+                onDragStart={(_) => resetPieceSelection()}
+                i={value.i}
+                j={value.j}
+                color="blue"
+                draggable
+              />
+            );
+          })}
         </Board>
       </Box>
     </BackgroundImageContainer>
