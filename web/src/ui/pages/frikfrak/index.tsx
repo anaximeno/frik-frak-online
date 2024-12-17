@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from "react";
 import { Line, Board } from "./style";
 import Cell from "./components/cell";
@@ -107,7 +106,7 @@ const FrikFrakPage = () => {
   return (
     <BackgroundImageContainer
       image={background}
-      onClick={(_) => resetPieceSelection()}
+      onClick={resetPieceSelection}
     >
       <Box paddingTop="200px">
         <Board>
@@ -141,7 +140,7 @@ const FrikFrakPage = () => {
                 y={coordinate.y * 3}
                 isSelected={selectedPiece?.id === id}
                 onClick={() => setSelectedPiece({ id, i: value.i, j: value.j })}
-                onDragStart={(_) => resetPieceSelection()}
+                onDragStart={resetPieceSelection}
                 i={value.i}
                 j={value.j}
                 color="blue"
