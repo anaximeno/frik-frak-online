@@ -104,10 +104,7 @@ const FrikFrakPage = () => {
   };
 
   return (
-    <BackgroundImageContainer
-      image={background}
-      onClick={resetPieceSelection}
-    >
+    <BackgroundImageContainer image={background} onClick={resetPieceSelection}>
       <Box paddingTop="200px">
         <Board>
           <Line style={{ transform: "rotate(45deg)", width: "150%" }} />
@@ -131,18 +128,18 @@ const FrikFrakPage = () => {
               />
             ))
           )}
-          {Object.entries(piecePositionStates).map(([id, value]) => {
-            const coordinate = CELL_POSITIONS[value.i][value.j];
+          {Object.entries(piecePositionStates).map(([id, { i, j }]) => {
+            const coordinate = CELL_POSITIONS[i][j];
             return (
               <Piece
                 id={id}
                 x={coordinate.x * 3}
                 y={coordinate.y * 3}
                 isSelected={selectedPiece?.id === id}
-                onClick={() => setSelectedPiece({ id, i: value.i, j: value.j })}
+                onClick={() => setSelectedPiece({ id, i, j })}
                 onDragStart={resetPieceSelection}
-                i={value.i}
-                j={value.j}
+                i={i}
+                j={j}
                 color="blue"
                 draggable
               />
