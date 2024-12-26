@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import React, { useCallback, useEffect, useState } from "react";
+import { Box } from "@chakra-ui/react";
 import { Line, Board } from "./style";
 import Cell from "./components/cell";
 import Piece, { IPieceCoordinate, IPiecePosition } from "./components/piece";
 import background from "../../../assets/background-02.webp";
-import { Box } from "@chakra-ui/react";
 import BackgroundImageContainer from "../../components/local/background-image-container";
+import useWebSocket from "../../../hooks/useWebSocket";
 
 const CELL_POSITIONS: IPieceCoordinate[][] = [
   [
@@ -40,7 +42,11 @@ const FrikFrakPage = () => {
     null
   );
 
-  const updatePieceToPosition = (pieceId: string, pos: IPiecePosition) => {
+  const { lastSocketMessage, sendSocketMessage } = useWebSocket(
+    "ws://127.0.0.1:8000/ws/game/play/"
+  );
+
+  const updatePieceStateToPos = (pieceId: string, pos: IPiecePosition) => {
     setPiecePositionStates((prevItems) => ({
       ...prevItems,
       [pieceId]: { ...pos },
@@ -56,7 +62,7 @@ const FrikFrakPage = () => {
     return false;
   };
 
-  const handleOnCellDrop = (i: number, j: number, event: React.DragEvent) => {
+  const handleOnCellDrop = (event: React.DragEvent, i: number, j: number) => {
     const data = event.dataTransfer.getData("application/json");
     const json = JSON.parse(data);
 
@@ -67,10 +73,14 @@ const FrikFrakPage = () => {
       return;
     }
 
-    updatePieceToPosition(json.from.id, {
+    // NOTE: Update localy first, then wait for message from socket
+    // validating the correct position:
+    updatePieceStateToPos(json.from.id, {
       i,
       j,
     });
+
+    movePieceToPos({ to: { i, j }, from: { i: json.from.i, j: json.from.j } });
   };
 
   const handleOnCellClick = (i: number, j: number) => {
@@ -80,28 +90,69 @@ const FrikFrakPage = () => {
         return;
       }
 
-      updatePieceToPosition(selectedPiece.id, {
+      // NOTE: Update localy first, then wait for message from socket
+      // validating the correct position:
+      updatePieceStateToPos(selectedPiece.id, {
         i,
         j,
       });
+
+      movePieceToPos({ to: { i, j }, from: selectedPiece });
+
       resetPieceSelection();
       return;
     }
+  };
 
-    for (const id of ["u_Piece_0", "u_Piece_1", "u_Piece_2"]) {
-      if (!(id in piecePositionStates)) {
-        updatePieceToPosition(id, {
-          i,
-          j,
-        });
-        break;
-      }
-    }
+  const movePieceToPos = (params: {
+    from?: IPiecePosition;
+    to: IPiecePosition;
+  }) => {
+    sendSocketMessage({
+      message_type: "move",
+      body: {
+        gid: "teste", // XXX
+        player_id: "001", // XXX
+        from: params.from
+          ? {
+              line: params.from.i,
+              col: params.from.j,
+            }
+          : null,
+        to: {
+          line: params.to.i,
+          col: params.to.j,
+        },
+      },
+    });
   };
 
   const resetPieceSelection = () => {
     if (selectedPiece) setSelectedPiece(null);
   };
+
+  const updateBoardPieces = useCallback((board: string[][] | null) => {
+    if (board) {
+      for (let i = 0; i < 3; ++i) {
+        for (let j = 0; j < 3; ++j) {
+          const piece = board[i][j];
+
+          if (piece != null) updatePieceStateToPos(piece, { i, j });
+        }
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (lastSocketMessage?.data) {
+      const messageType = lastSocketMessage.data["message_type"];
+      const body = lastSocketMessage.data["body"];
+
+      if (messageType == "start" || messageType == "update") {
+        if (body && body["board"]) updateBoardPieces(body["board"]);
+      }
+    }
+  }, [lastSocketMessage, updateBoardPieces]);
 
   return (
     <BackgroundImageContainer image={background} onClick={resetPieceSelection}>
@@ -123,7 +174,7 @@ const FrikFrakPage = () => {
                 key={`${i}-${j}`}
                 x={cell.x}
                 y={cell.y}
-                onDropItem={(e) => handleOnCellDrop(i, j, e)}
+                onDropItem={(e) => handleOnCellDrop(e, i, j)}
                 onClick={() => handleOnCellClick(i, j)}
               />
             ))
