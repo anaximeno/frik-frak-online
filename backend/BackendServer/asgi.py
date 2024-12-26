@@ -31,7 +31,7 @@ application = ProtocolTypeRouter(
     {
         "http": django_asgi_app,
         "websocket": AuthMiddlewareStack(
-            URLRouter(GameServer.routing.wbwebsocket_urlpatterns),
+            URLRouter(GameServer.routing.websocket_urlpatterns),
         ),
     },
 )

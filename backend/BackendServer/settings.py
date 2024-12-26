@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'channels',
     # Local Apps
     'BackendServer',
+    'GameServer',
 ]
 
 MIDDLEWARE = [
