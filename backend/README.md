@@ -2,4 +2,6 @@
 
 ## How to setup
 
-TODO
+```bash
+python3 manage.py migrate
+```
