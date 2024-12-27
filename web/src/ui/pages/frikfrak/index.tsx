@@ -8,7 +8,7 @@ import background from "../../../assets/background-02.webp";
 import BackgroundImageContainer from "../../components/local/background-image-container";
 import useWebSocket from "../../../hooks/useWebSocket";
 
-const CELL_POSITIONS: IPieceCoordinate[][] = [
+const BOARD_COORDINATES: IPieceCoordinate[][] = [
   [
     { x: 0, y: 0 },
     { x: 50, y: 0 },
@@ -26,17 +26,16 @@ const CELL_POSITIONS: IPieceCoordinate[][] = [
   ],
 ];
 
-interface IPiecePositionStates {
-  [key: string]: IPiecePosition;
-}
-
 interface ISelectedPiece extends IPiecePosition {
-  id: string;
+  pid: string;
 }
 
 const FrikFrakPage = () => {
-  const [piecePositionStates, setPiecePositionStates] =
-    useState<IPiecePositionStates>({});
+  const [boardState, setBoardState] = useState<Array<Array<string | null>>>([
+    [null, null, null],
+    [null, null, null],
+    [null, null, null],
+  ]);
 
   const [selectedPiece, setSelectedPiece] = useState<ISelectedPiece | null>(
     null
@@ -46,12 +45,16 @@ const FrikFrakPage = () => {
     "ws://127.0.0.1:8000/ws/game/play/"
   );
 
-  const updatePieceStateToPos = (pieceId: string, pos: IPiecePosition) => {
-    setPiecePositionStates((prevItems) => ({
-      ...prevItems,
-      [pieceId]: { ...pos },
-    }));
-  };
+  const updateBoardPieceStatePosition = useCallback(
+    (params: { from?: IPiecePosition; to: IPiecePosition; pid: string }) => {
+      const { from, to, pid } = params;
+      const newBoardState = [...boardState];
+      if (from) newBoardState[from.i][from.j] = null;
+      newBoardState[to.i][to.j] = pid;
+      setBoardState(newBoardState);
+    },
+    [boardState]
+  );
 
   const checkPieceMoveIsValid = (
     from: IPiecePosition,
@@ -75,12 +78,17 @@ const FrikFrakPage = () => {
 
     // NOTE: Update localy first, then wait for message from socket
     // validating the correct position:
-    updatePieceStateToPos(json.from.id, {
-      i,
-      j,
+    updateBoardPieceStatePosition({
+      pid: json.from.pid,
+      from: json.from,
+      to: { i, j },
     });
 
-    movePieceToPos({ to: { i, j }, from: { i: json.from.i, j: json.from.j } });
+    sendPiecePositionChangeThruSocket({
+      pid: json.from.pid,
+      from: json.from,
+      to: { i, j },
+    });
   };
 
   const handleOnCellClick = (i: number, j: number) => {
@@ -92,19 +100,25 @@ const FrikFrakPage = () => {
 
       // NOTE: Update localy first, then wait for message from socket
       // validating the correct position:
-      updatePieceStateToPos(selectedPiece.id, {
-        i,
-        j,
+      updateBoardPieceStatePosition({
+        pid: selectedPiece.pid,
+        from: selectedPiece,
+        to: { i, j },
       });
 
-      movePieceToPos({ to: { i, j }, from: selectedPiece });
+      sendPiecePositionChangeThruSocket({
+        pid: selectedPiece.pid,
+        from: selectedPiece,
+        to: { i, j },
+      });
 
       clearPieceSelection();
       return;
     }
   };
 
-  const movePieceToPos = (params: {
+  const sendPiecePositionChangeThruSocket = (params: {
+    pid: string;
     from?: IPiecePosition;
     to: IPiecePosition;
   }) => {
@@ -112,7 +126,7 @@ const FrikFrakPage = () => {
       message_type: "move",
       body: {
         gid: "teste", // XXX
-        player_id: "001", // XXX
+        player_id: params.pid,
         from: params.from
           ? {
               line: params.from.i,
@@ -131,28 +145,16 @@ const FrikFrakPage = () => {
     if (selectedPiece) setSelectedPiece(null);
   };
 
-  const updateBoardPieces = useCallback((board: string[][] | null) => {
-    if (board) {
-      for (let i = 0; i < 3; ++i) {
-        for (let j = 0; j < 3; ++j) {
-          const piece = board[i][j];
-
-          if (piece != null) updatePieceStateToPos(piece, { i, j });
-        }
-      }
-    }
-  }, []);
-
   useEffect(() => {
     if (lastSocketMessage?.data) {
       const messageType = lastSocketMessage.data["message_type"];
       const body = lastSocketMessage.data["body"];
 
       if (messageType == "start" || messageType == "update") {
-        if (body && body["board"]) updateBoardPieces(body["board"]);
+        if (body && body["board"]) setBoardState(body["board"]);
       }
     }
-  }, [lastSocketMessage, updateBoardPieces]);
+  }, [lastSocketMessage]);
 
   return (
     <BackgroundImageContainer image={background} onClick={clearPieceSelection}>
@@ -168,8 +170,8 @@ const FrikFrakPage = () => {
           <Line style={{ translate: "0px -150px" }} />
           <Line />
           <Line style={{ translate: "0px 150px" }} />
-          {CELL_POSITIONS.map((items, i) =>
-            items.map((cell, j) => (
+          {BOARD_COORDINATES.map((row, i) =>
+            row.map((cell, j) => (
               <Cell
                 key={`${i}-${j}`}
                 x={cell.x}
@@ -179,23 +181,30 @@ const FrikFrakPage = () => {
               />
             ))
           )}
-          {Object.entries(piecePositionStates).map(([id, { i, j }]) => {
-            const coordinate = CELL_POSITIONS[i][j];
-            return (
-              <Piece
-                id={id}
-                x={coordinate.x * 3}
-                y={coordinate.y * 3}
-                isSelected={selectedPiece?.id === id}
-                onClick={() => setSelectedPiece({ id, i, j })}
-                onDragStart={clearPieceSelection}
-                i={i}
-                j={j}
-                color="blue"
-                draggable
-              />
-            );
-          })}
+          {boardState.map((row, i) =>
+            row.map((pid, j) => {
+              if (pid === null) return <></>;
+              const coord = BOARD_COORDINATES[i][j];
+              return (
+                <Piece
+                  pid={pid}
+                  x={coord.x * 3}
+                  y={coord.y * 3}
+                  onClick={() => setSelectedPiece({ pid, i, j })}
+                  isSelected={
+                    selectedPiece?.pid == pid &&
+                    selectedPiece?.i == i &&
+                    selectedPiece?.j == j
+                  }
+                  onDragStart={clearPieceSelection}
+                  i={i}
+                  j={j}
+                  color="blue"
+                  draggable
+                />
+              );
+            })
+          )}
         </Board>
       </Box>
     </BackgroundImageContainer>

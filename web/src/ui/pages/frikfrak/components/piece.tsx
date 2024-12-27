@@ -12,7 +12,7 @@ export interface IPiecePosition {
 }
 
 interface IPieceProps extends IPieceCoordinate, IPiecePosition {
-  id: string;
+  pid: string;
   draggable?: boolean;
   isSelected?: boolean;
   color?: string;
@@ -30,7 +30,7 @@ const Piece = (props: IPieceProps) => {
       "application/json",
       JSON.stringify({
         from: {
-          id: props.id,
+          pid: props.pid,
           x: props.x,
           y: props.y,
           i: props.i,
@@ -48,6 +48,7 @@ const Piece = (props: IPieceProps) => {
 
   return (
     <DraggablePiece
+      key={`${props.pid}-${props.i}-${props.j}`}
       draggable={props.draggable}
       x={props.x}
       y={props.y}

@@ -60,6 +60,7 @@ const useWebSocket = (url: string): UseWebSocketReturn => {
 
   const sendSocketMessage = useCallback((message: any) => {
     if (socket.current && socket.current.readyState === WebSocket.OPEN) {
+      console.log("Sending Message:", message);
       socket.current.send(JSON.stringify(message));
     } else {
       console.error("WebSocket is not connected");
