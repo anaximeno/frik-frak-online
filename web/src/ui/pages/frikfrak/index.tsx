@@ -99,7 +99,7 @@ const FrikFrakPage = () => {
 
       movePieceToPos({ to: { i, j }, from: selectedPiece });
 
-      resetPieceSelection();
+      clearPieceSelection();
       return;
     }
   };
@@ -127,7 +127,7 @@ const FrikFrakPage = () => {
     });
   };
 
-  const resetPieceSelection = () => {
+  const clearPieceSelection = () => {
     if (selectedPiece) setSelectedPiece(null);
   };
 
@@ -155,7 +155,7 @@ const FrikFrakPage = () => {
   }, [lastSocketMessage, updateBoardPieces]);
 
   return (
-    <BackgroundImageContainer image={background} onClick={resetPieceSelection}>
+    <BackgroundImageContainer image={background} onClick={clearPieceSelection}>
       <Box paddingTop="200px">
         <Board>
           <Line style={{ transform: "rotate(45deg)", width: "150%" }} />
@@ -188,7 +188,7 @@ const FrikFrakPage = () => {
                 y={coordinate.y * 3}
                 isSelected={selectedPiece?.id === id}
                 onClick={() => setSelectedPiece({ id, i, j })}
-                onDragStart={resetPieceSelection}
+                onDragStart={clearPieceSelection}
                 i={i}
                 j={j}
                 color="blue"
