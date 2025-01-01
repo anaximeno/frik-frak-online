@@ -1,6 +1,7 @@
 import json
 
 from channels.generic.websocket import WebsocketConsumer
+from asgiref.sync import async_to_sync
 
 from .services import GamingService
 
@@ -10,73 +11,112 @@ gaming_service = GamingService.get_instance()
 class GameServerConsumer(WebsocketConsumer):
     """Serves game info."""
 
+    # TODO: implement this for real
     def connect(self):
+        async_to_sync(self.channel_layer.group_add)(
+            "game-server-group", self.channel_name
+        )
         self.accept()
 
-    def disconnect(self, code):
-        return super().disconnect(code)
+    def disconnect(self, close_code):
+        async_to_sync(self.channel_layer.group_discard)(
+            "game-server-group", self.channel_name
+        )
 
-    def receive(self, text_data=None, bytes_data=None):
-        self.send(text_data=json.dumps({"message": "Received!"}))
-        return super().receive(text_data, bytes_data)
+    def receive(self, text_data):
+        async_to_sync(self.channel_layer.group_send)(
+            "game-server-group",
+            {
+                "type": "chat.message",
+                "text": text_data,
+            },
+        )
+
+    def chat_message(self, event):
+        self.send(text_data=event["text"])
 
 
 class GamePlayConsumer(WebsocketConsumer):
     """Sends and receive playing time data."""
 
     def connect(self):
-        self.accept()
-        self.gid = None
-        game = gaming_service.create_game("001", "002")
-        self.gid = game["gid"]
-        self.send(
-            text_data=json.dumps(
-                {
-                    "message_type": "start",
-                    "body": {
-                        "gid": self.gid,
-                        "adversary_id": 1,
-                        "turn_player_id": 1,
-                        "board": game["board"],
-                    },
-                }
-            )
+        async_to_sync(self.channel_layer.group_add)(
+            "game-play-group", self.channel_name
         )
+        self.accept()
+        self.game_id = gaming_service.create_game("001", "002")
 
     def disconnect(self, code):
+        async_to_sync(self.channel_layer.group_discard)(
+            "game-play-group", self.channel_name
+        )
         return super().disconnect(code)
 
     def receive(self, text_data=None, bytes_data=None):
         if text_data:
             data = json.loads(text_data)
-            if "message_type" in data:
-                self.handle_msg_type_from_data(data)
+            if "msg_type" in data:
+                self.handle_messsage(data)
 
-    def handle_msg_type_from_data(self, data: dict) -> None:
-        match data["message_type"]:
+    def handle_messsage(self, data: dict) -> None:
+        match data["msg_type"]:
             case "play":
-                # TODO: handle multiplayer
+                # TODO
                 pass
             case "move":
                 try:
-                    if not self.gid:
-                        game = gaming_service.create_game("001", "002")  # XXX
-                        self.gid = game["gid"]  # XXX
-                    # -----------------------------------------------------------
-                    data["body"]["gid"] = self.gid
-                    result = gaming_service.make_move(data["body"])
-                    response = json.dumps({"message_type": "update", "body": result})
-                    self.send(text_data=response)
+                    gaming_service.make_move(data["game_id"], data["body"])
                 except Exception as e:
-                    response = json.dumps(
+                    async_to_sync(self.channel_layer.group_send)(
+                        "game-play-group",
                         {
-                            "message_type": "error",
-                            "body": {
-                                "gid": self.gid,
-                                "error": str(e),
-                            },
-                        }
+                            "type": "game.error",
+                            "error": json.dumps(e),
+                            "game_id": self.game_id,
+                        },
                     )
-                    self.send(text_data=response)
             case _:
-                print("UNKNOWN")
+                pass
+
+    def game_start(self, event):
+        # TODO: check if this consumer instance is part of the game starting
+
+        self.send(
+            text_data=json.dumps(
+                {
+                    "msg_type": "start",
+                    "game_id": event["game_id"],
+                    "body": event["content"],
+                },
+            )
+        )
+
+    def game_update(self, event):
+        game_id = event["game_id"] if "game_id" in event else None
+        if game_id is not None and self.game_id != game_id:
+            return
+
+        self.send(
+            text_data=json.dumps(
+                {
+                    "msg_type": "update",
+                    "game_id": game_id,
+                    "body": event["content"],
+                },
+            )
+        )
+
+    def game_error(self, event):
+        game_id = event["game_id"] if "game_id" in event else None
+        if game_id is not None and self.game_id != game_id:
+            return
+
+        self.send(
+            text_data=json.dumps(
+                {
+                    "msg_type": "error",
+                    "game_id": game_id,
+                    "body": event["content"],
+                },
+            )
+        )

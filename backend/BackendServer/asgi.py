@@ -30,6 +30,8 @@ django.setup()
 application = ProtocolTypeRouter(
     {
         "http": django_asgi_app,
+        # TODO: use AllowedHostsOriginValidator, ref bellow:
+        # https://channels.readthedocs.io/en/latest/topics/authentication.html
         "websocket": AuthMiddlewareStack(
             URLRouter(GameServer.routing.websocket_urlpatterns),
         ),

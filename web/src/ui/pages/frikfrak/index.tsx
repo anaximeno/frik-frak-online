@@ -123,9 +123,9 @@ const FrikFrakPage = () => {
     to: IPiecePosition;
   }) => {
     sendSocketMessage({
-      message_type: "move",
+      msg_type: "move",
+      game_id: "001-vs-002", // XXX
       body: {
-        gid: "teste", // XXX
         player_id: params.pid,
         from: params.from
           ? {
@@ -147,7 +147,7 @@ const FrikFrakPage = () => {
 
   useEffect(() => {
     if (lastSocketMessage?.data) {
-      const messageType = lastSocketMessage.data["message_type"];
+      const messageType = lastSocketMessage.data["msg_type"];
       const body = lastSocketMessage.data["body"];
 
       if (messageType == "start" || messageType == "update") {
