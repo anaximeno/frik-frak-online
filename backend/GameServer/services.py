@@ -19,7 +19,7 @@ class GamingService:
         return cls.__instance
 
     # XXX
-    def create_game(self, player1_id: str, player2_id: str) -> str:
+    def create_game(self, player1_id: str, player2_id: str) -> None:
         game_id = f"{player1_id}-vs-{player2_id}"
 
         board = Board.objects.get(id=1)  # XXX
@@ -37,7 +37,8 @@ class GamingService:
             },
         )
 
-        return game_id
+    def add_player_to_game_queue(self, player_id: str, against: str) -> None:
+        pass  # TODO: handle game queue
 
     def make_move(self, game_id: str, data: dict) -> None:
         pid = data["player_id"]
@@ -52,7 +53,7 @@ class GamingService:
             line, col = pos_to["line"], pos_to["col"]
             board.entries[line][col] = pid
 
-        # board.save(update_fields=["entries"])
+        # board.save(update_fields=["entries"]) # XXX
 
         async_to_sync(self.channel_layer.group_send)(
             "game-play-group",
@@ -65,3 +66,6 @@ class GamingService:
                 },
             },
         )
+
+    def player_in_game(self, player_id: str, game_id: str) -> bool:
+        return True  # XXX: only for testing purposes, properly implement this

@@ -40,11 +40,14 @@ class GamePlayConsumer(WebsocketConsumer):
     """Sends and receive playing time data."""
 
     def connect(self):
+        self.game_id = None
+        self.player_id = None
+        self.player_vs = None
         async_to_sync(self.channel_layer.group_add)(
             "game-play-group", self.channel_name
         )
         self.accept()
-        self.game_id = gaming_service.create_game("001", "002")
+        gaming_service.create_game("001", "002")  # XXX: for testing
 
     def disconnect(self, code):
         async_to_sync(self.channel_layer.group_discard)(
@@ -61,7 +64,12 @@ class GamePlayConsumer(WebsocketConsumer):
     def handle_messsage(self, data: dict) -> None:
         match data["msg_type"]:
             case "play":
-                # TODO
+                self.player_id = data["body"]["player_id"]
+                self.player_vs = data["body"]["vs"]  # bot | user
+                gaming_service.add_player_to_game_queue(
+                    player=self.player_id,
+                    against=self.player_vs,
+                )
                 pass
             case "move":
                 try:
@@ -79,7 +87,12 @@ class GamePlayConsumer(WebsocketConsumer):
                 pass
 
     def game_start(self, event):
-        # TODO: check if this consumer instance is part of the game starting
+        if self.game_id != None or not gaming_service.player_in_game(
+            self.player_id, event["game_id"]
+        ):
+            return
+
+        self.game_id = event["game_id"]
 
         self.send(
             text_data=json.dumps(
