@@ -1,57 +1,81 @@
 import uuid
-from django.db import models
 
-class Board(models.Model):
-    entries = models.JSONField(
-        help_text="The game board",
-        blank=False,
-        null=False,
-        default=dict,
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+from django.db import models
+from django.contrib.auth.models import User
+
 
 class Player(models.Model):
-    # Campos básicos para um jogador
-    name = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
+    id = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        primary_key=True,
+        null=False,
+        blank=False,
+        editable=False,
+    )
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="player",
+        unique=True,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.name
+        return self.user.username
+
 
 class Game(models.Model):
-    board = models.ForeignKey(Board, on_delete=models.CASCADE)
-    game_id = models.UUIDField(default=uuid.uuid4, unique=True)
-    
-    last_player_id = models.ForeignKey(
-        Player,  # Agora referencia o modelo Player diretamente
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name='last_moves'
+    id = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        primary_key=True,
+        null=False,
+        blank=False,
+        editable=False,
     )
-    
-    player1_id = models.ForeignKey(
+    players = models.ManyToManyField(
         Player,
-        on_delete=models.CASCADE,
-        related_name='games_as_player1'
+        related_name="game_players",
+        blank=False,
+        max_length=2,
     )
-    
-    player2_id = models.ForeignKey(
-        Player,
-        on_delete=models.CASCADE,
-        related_name='games_as_player2'
-    )
-    
-    winner_player_id = models.ForeignKey(
+    winner = models.ForeignKey(
         Player,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
-        related_name='games_won'
+        related_name="games_won",
     )
-    
+    GAME_STATES = [
+        ("ongoing", "Ongoing"),
+        ("ended", "Ended"),
+    ]
+    state = models.CharField(
+        max_length=20,
+        choices=GAME_STATES,
+        default="ongoing",
+    )
+
+    def default_board():
+        return [
+            [None, None, None],
+            [None, None, None],
+            [None, None, None],
+        ]
+
+    board = models.JSONField(
+        help_text="The game board",
+        blank=False,
+        null=False,
+        default=default_board,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return " vs ".join(str(p) for p in self.players.get_queryset())
+
+    def vs(self):
+        return " vs ".join(str(p) for p in self.players.get_queryset())

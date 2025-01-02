@@ -11,29 +11,32 @@ gaming_service = GamingService.get_instance()
 class GameServerConsumer(WebsocketConsumer):
     """Serves game info."""
 
-    # TODO: implement this for real
     def connect(self):
+        self.game_id = self.scope["url_route"]["kwargs"]["game_id"]
+        # TODO: send current state for intialization
         async_to_sync(self.channel_layer.group_add)(
-            "game-server-group", self.channel_name
+            "game-play-group", self.channel_name
         )
         self.accept()
 
     def disconnect(self, close_code):
         async_to_sync(self.channel_layer.group_discard)(
-            "game-server-group", self.channel_name
+            "game-play-group", self.channel_name
         )
 
-    def receive(self, text_data):
-        async_to_sync(self.channel_layer.group_send)(
-            "game-server-group",
-            {
-                "type": "chat.message",
-                "text": text_data,
-            },
-        )
+    def game_update(self, event):
+        if (game_id := event["game_id"]) is None or self.game_id != game_id:
+            return
 
-    def chat_message(self, event):
-        self.send(text_data=event["text"])
+        self.send(
+            text_data=json.dumps(
+                {
+                    "msg_type": "update",
+                    "game_id": self.game_id,
+                    "body": event["content"],
+                },
+            )
+        )
 
 
 class GamePlayConsumer(WebsocketConsumer):
@@ -42,17 +45,18 @@ class GamePlayConsumer(WebsocketConsumer):
     def connect(self):
         self.game_id = None
         self.player_id = None
-        self.player_vs = None
+        self.against_player_id = None
+        self.against_player_kind = None
         async_to_sync(self.channel_layer.group_add)(
             "game-play-group", self.channel_name
         )
         self.accept()
-        gaming_service.create_game("001", "002")  # XXX: for testing
 
     def disconnect(self, code):
         async_to_sync(self.channel_layer.group_discard)(
             "game-play-group", self.channel_name
         )
+        gaming_service.handle_player_disconnected(self.player_id)
         return super().disconnect(code)
 
     def receive(self, text_data=None, bytes_data=None):
@@ -64,22 +68,24 @@ class GamePlayConsumer(WebsocketConsumer):
     def handle_messsage(self, data: dict) -> None:
         match data["msg_type"]:
             case "play":
-                self.player_id = data["body"]["player_id"]
-                self.player_vs = data["body"]["vs"]  # bot | user
-                gaming_service.add_player_to_game_queue(
-                    player=self.player_id,
-                    against=self.player_vs,
+                self.player_id = data["player_id"]
+                self.against_player_kind = data["body"]["vs"]  # bot | user
+                gaming_service.add_player_to_wait_list(
+                    player_id=self.player_id,
                 )
-                pass
             case "move":
                 try:
-                    gaming_service.make_move(data["game_id"], data["body"])
+                    gaming_service.make_move(
+                        game_id=data["game_id"],
+                        player_id=data["player_id"],
+                        move=data["body"],
+                    )
                 except Exception as e:
                     async_to_sync(self.channel_layer.group_send)(
                         "game-play-group",
                         {
                             "type": "game.error",
-                            "error": json.dumps(e),
+                            "error": json.dumps(str(e)),
                             "game_id": self.game_id,
                         },
                     )
@@ -93,6 +99,8 @@ class GamePlayConsumer(WebsocketConsumer):
             return
 
         self.game_id = event["game_id"]
+        [p1, p2] = event["content"]["players_ids"]
+        self.against_player_id = p1 if self.player_id == p2 else p2
 
         self.send(
             text_data=json.dumps(
@@ -105,31 +113,25 @@ class GamePlayConsumer(WebsocketConsumer):
         )
 
     def game_update(self, event):
-        game_id = event["game_id"] if "game_id" in event else None
-        if game_id is not None and self.game_id != game_id:
-            return
-
-        self.send(
-            text_data=json.dumps(
-                {
-                    "msg_type": "update",
-                    "game_id": game_id,
-                    "body": event["content"],
-                },
+        if gaming_service.player_in_game(self.player_id, event["game_id"]):
+            self.send(
+                text_data=json.dumps(
+                    {
+                        "msg_type": "update",
+                        "game_id": event["game_id"],
+                        "body": event["content"],
+                    },
+                )
             )
-        )
 
     def game_error(self, event):
-        game_id = event["game_id"] if "game_id" in event else None
-        if game_id is not None and self.game_id != game_id:
-            return
-
-        self.send(
-            text_data=json.dumps(
-                {
-                    "msg_type": "error",
-                    "game_id": game_id,
-                    "body": event["content"],
-                },
+        if gaming_service.player_in_game(self.player_id, event["game_id"]):
+            self.send(
+                text_data=json.dumps(
+                    {
+                        "msg_type": "error",
+                        "game_id": event["game_id"],
+                        "body": event["content"],
+                    },
+                )
             )
-        )

@@ -125,8 +125,8 @@ const FrikFrakPage = () => {
     sendSocketMessage({
       msg_type: "move",
       game_id: "001-vs-002", // XXX
+      player_id: params.pid,
       body: {
-        player_id: params.pid,
         from: params.from
           ? {
               line: params.from.i,
