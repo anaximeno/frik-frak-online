@@ -7,6 +7,7 @@ interface ICellProps {
   y: number;
   onDropItem?: (event: React.DragEvent) => void;
   onClick?: (event: React.MouseEvent) => void;
+  disable?: boolean;
 }
 
 const Cell = (props: ICellProps) => {
@@ -43,8 +44,8 @@ const Cell = (props: ICellProps) => {
       onDragOver={handleDragOver}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-      onClick={handleOnClik}
+      onDrop={!props.disable ? handleDrop : undefined}
+      onClick={!props.disable ? handleOnClik : undefined}
       isOver={isOver}
     />
   );

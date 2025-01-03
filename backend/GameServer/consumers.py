@@ -2,6 +2,7 @@ import json
 
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
+from urllib.parse import parse_qs
 
 from .services import GamingService
 
@@ -43,10 +44,13 @@ class GamePlayConsumer(WebsocketConsumer):
     """Sends and receive playing time data."""
 
     def connect(self):
-        self.game_id = None
-        self.player_id = None
-        self.against_player_id = None
-        self.against_player_kind = None
+        query_string = self.scope['query_string'].decode()
+        query_params = parse_qs(query_string)
+        # In case of disconnection and reconnection
+        self.game_id = query_params.get('game_id', [None])[0]
+        self.player_id = query_params.get('player_id', [None])[0]
+        self.against_player_id = query_params.get('adversary_id', [None])[0]
+        self.against_player_kind = query_params.get('vs', [None])[0]
         async_to_sync(self.channel_layer.group_add)(
             "game-play-group", self.channel_name
         )
@@ -131,7 +135,7 @@ class GamePlayConsumer(WebsocketConsumer):
                     {
                         "msg_type": "error",
                         "game_id": event["game_id"],
-                        "body": event["content"],
+                        "body": {"error": event["error"]},
                     },
                 )
             )

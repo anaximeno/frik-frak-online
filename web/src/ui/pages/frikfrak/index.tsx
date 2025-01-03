@@ -1,5 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useCallback, useEffect, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Box } from "@chakra-ui/react";
 import { Line, Board } from "./style";
 import Cell from "./components/cell";
@@ -26,6 +32,8 @@ const BOARD_COORDINATES: IPieceCoordinate[][] = [
   ],
 ];
 
+const PLAYER_ID = "f79fb116-1428-4e93-83cb-8a9a6c248b89";
+
 interface ISelectedPiece extends IPiecePosition {
   pid: string;
 }
@@ -41,9 +49,12 @@ const FrikFrakPage = () => {
     null
   );
 
-  const { lastSocketMessage, sendSocketMessage } = useWebSocket(
-    "ws://127.0.0.1:8000/ws/game/play/"
-  );
+  const gameId = useRef<string>("");
+
+  const [turnPlayerId, setTurnPlayerId] = useState<string>("");
+
+  const { lastSocketMessage, sendSocketMessage, socketConnectionStatus } =
+    useWebSocket(`ws://127.0.0.1:8000/ws/game/play/?player_id=${PLAYER_ID}`);
 
   const updateBoardPieceStatePosition = useCallback(
     (params: { from?: IPiecePosition; to: IPiecePosition; pid: string }) => {
@@ -55,6 +66,22 @@ const FrikFrakPage = () => {
     },
     [boardState]
   );
+
+  const canAddNewPieces = useMemo(() => {
+    if (turnPlayerId !== PLAYER_ID) return false;
+
+    let totalPlayerPieces = 0;
+
+    for (const row of boardState) {
+      for (const slot of row) {
+        if (slot && slot === PLAYER_ID) {
+          totalPlayerPieces++;
+        }
+      }
+    }
+
+    return totalPlayerPieces < 3;
+  }, [boardState, turnPlayerId]);
 
   const checkPieceMoveIsValid = (
     from: IPiecePosition,
@@ -114,6 +141,20 @@ const FrikFrakPage = () => {
 
       clearPieceSelection();
       return;
+    } else if (canAddNewPieces) {
+      // NOTE: Update localy first, then wait for message from socket
+      // validating the correct position:
+      updateBoardPieceStatePosition({
+        pid: PLAYER_ID,
+        to: { i, j },
+      });
+
+      sendPiecePositionChangeThruSocket({
+        pid: PLAYER_ID,
+        to: { i, j },
+      });
+
+      clearPieceSelection();
     }
   };
 
@@ -124,7 +165,7 @@ const FrikFrakPage = () => {
   }) => {
     sendSocketMessage({
       msg_type: "move",
-      game_id: "001-vs-002", // XXX
+      game_id: gameId.current,
       player_id: params.pid,
       body: {
         from: params.from
@@ -150,11 +191,34 @@ const FrikFrakPage = () => {
       const messageType = lastSocketMessage.data["msg_type"];
       const body = lastSocketMessage.data["body"];
 
-      if (messageType == "start" || messageType == "update") {
-        if (body && body["board"]) setBoardState(body["board"]);
+      switch (messageType) {
+        case "start":
+          gameId.current = lastSocketMessage.data.game_id;
+          setBoardState(body.board);
+          setTurnPlayerId(body.turn_player_id);
+          break;
+        case "update":
+          setBoardState(body.board);
+          setTurnPlayerId(body.turn_player_id);
+          break;
+        default:
+          break;
       }
     }
   }, [lastSocketMessage]);
+
+  useEffect(() => {
+    if (gameId.current === "" && socketConnectionStatus === "connected") {
+      // Send PLAY message
+      sendSocketMessage({
+        msg_type: "play",
+        player_id: PLAYER_ID,
+        body: {
+          vs: "user",
+        },
+      });
+    }
+  }, [gameId, sendSocketMessage, socketConnectionStatus]);
 
   return (
     <BackgroundImageContainer image={background} onClick={clearPieceSelection}>
@@ -178,6 +242,7 @@ const FrikFrakPage = () => {
                 y={cell.y}
                 onDropItem={(e) => handleOnCellDrop(e, i, j)}
                 onClick={() => handleOnCellClick(i, j)}
+                disable={turnPlayerId !== PLAYER_ID}
               />
             ))
           )}
@@ -199,8 +264,9 @@ const FrikFrakPage = () => {
                   onDragStart={clearPieceSelection}
                   i={i}
                   j={j}
-                  color="blue"
+                  color={pid === PLAYER_ID ? "blue" : "red"}
                   draggable
+                  disable={pid !== PLAYER_ID || turnPlayerId !== PLAYER_ID}
                 />
               );
             })

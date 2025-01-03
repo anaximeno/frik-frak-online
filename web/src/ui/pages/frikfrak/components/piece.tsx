@@ -19,6 +19,7 @@ interface IPieceProps extends IPieceCoordinate, IPiecePosition {
   onClick?: (event: React.MouseEvent) => void;
   onDragStart?: (event: React.DragEvent) => void;
   onDragEnd?: (event: React.DragEvent) => void;
+  disable?: boolean;
 }
 
 const Piece = (props: IPieceProps) => {
@@ -49,14 +50,14 @@ const Piece = (props: IPieceProps) => {
   return (
     <DraggablePiece
       key={`${props.pid}-${props.i}-${props.j}`}
-      draggable={props.draggable}
+      draggable={!props.disable && props.draggable}
       x={props.x}
       y={props.y}
       isDragging={isDragging}
       isSelected={props.isSelected}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
-      onClick={props.onClick}
+      onClick={!props.disable ? props.onClick : undefined}
       color={props.color}
     />
   );

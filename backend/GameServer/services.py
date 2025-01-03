@@ -26,7 +26,7 @@ class GamingService:
         game = Game.objects.create()
         game.players.add(p1, p2)
         players_ids = [str(p1.id), str(p2.id)]
-        turn_player = random.choice(players_ids)
+        turn_player = players_ids[random.randint(0, 1)]
         async_to_sync(self.channel_layer.group_send)(
             "game-play-group",
             {
@@ -53,6 +53,10 @@ class GamingService:
 
     def make_move(self, game_id: str, player_id: str, move: dict) -> None:
         game = Game.objects.get(id=game_id)
+
+        if game.state != "ongoing" or not self.player_in_game(player_id, game_id):
+            return
+
         board = [*game.board]
 
         if "from" in move and (pos_from := move["from"]):
@@ -86,7 +90,12 @@ class GamingService:
         return Game.objects.get(id=game_id).players.contains(player)
 
     def handle_player_disconnected(self, player_id: str) -> None:
-        # TODO: make the other player the winner
-        # (or wait some time for reconnect and then do it)
         if player_id in self.player_wait_list:
             self.player_wait_list.remove(player_id)
+
+        # TODO: wait some time for reconnection before ending the game
+        for game in Game.objects.filter(players__id=player_id, state="ongoing"):
+            [p1, p2] = game.players.get_queryset()
+            game.winner = p2 if player_id == p1.id else p1  # XXX: something's not right
+            game.state = "ended"
+            game.save(update_fields=["winner", "state"])
