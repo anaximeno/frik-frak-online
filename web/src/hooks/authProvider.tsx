@@ -22,11 +22,20 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const getStoredUser = () => {
+  const storedData = localStorage.getItem("auth:user");
+  return storedData ? JSON.parse(storedData) : null;
+};
+
+const getStoredToken = () => {
+  return localStorage.getItem("auth:token");
+};
+
 export const AuthProvider: React.FC<React.PropsWithChildren> = ({
   children,
 }) => {
-  const [user, setUser] = useState<IUserData | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<IUserData | null>(getStoredUser());
+  const [token, setToken] = useState<string | null>(getStoredToken());
   const [authInterceptorId, setAuthInterceptorId] = useState<number | null>(
     null
   );
@@ -49,8 +58,8 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
 
       setUser(userResponse.data);
 
-      // TODO: use this to initialize the user auth in case it is available
       localStorage.setItem("auth:token", authToken);
+      localStorage.setItem("auth:user", JSON.stringify(userResponse.data));
     } catch (error) {
       console.error("Login failed:", error);
       return Promise.reject(error);
@@ -67,6 +76,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
       setToken(null);
 
       localStorage.removeItem("auth:token");
+      localStorage.removeItem("auth:user");
 
       if (authInterceptorId) {
         api.interceptors.request.eject(authInterceptorId);

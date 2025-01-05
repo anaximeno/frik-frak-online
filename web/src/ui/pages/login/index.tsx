@@ -1,7 +1,7 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useAuth } from "../../../hooks/authProvider";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { Field } from "../../../components/ui/field";
 import { PasswordInput } from "../../../components/ui/password-input";
 import { Button } from "../../../components/ui/button";
@@ -24,7 +24,7 @@ interface FormValues {
   password: string;
 }
 
-const LoginPage = () => {
+const LoginPage: React.FC = () => {
   const {
     register,
     handleSubmit,
@@ -32,10 +32,12 @@ const LoginPage = () => {
     reset,
     formState: { errors },
   } = useForm<FormValues>();
+
   const navigate = useNavigate();
-  const { login } = useAuth();
-  const location = useLocation();
-  const nextPage = location.state.from || "/";
+  const { login, user, token } = useAuth();
+  const [searchParams] = useSearchParams();
+
+  const nextPage = searchParams.get("next") || "/";
 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -54,7 +56,10 @@ const LoginPage = () => {
     reset();
   };
 
-  return (
+  return user && token ? (
+    // Don't show the login page if logged.
+    <Navigate to={nextPage} replace />
+  ) : (
     <BackgroundImageContainer image={background}>
       <VStack>
         <VStack marginTop="50px" marginBottom="20px">
@@ -100,7 +105,7 @@ const LoginPage = () => {
                   É novo aqui?{" "}
                   <Link
                     variant="underline"
-                    href="/register"
+                    href={`/register?next=${nextPage}`}
                     colorPalette="teal"
                   >
                     Cadastre-se.
