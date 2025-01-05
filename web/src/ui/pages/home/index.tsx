@@ -1,7 +1,7 @@
 import { HStack, VStack, Heading } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import BackgroundImageContainer from "../../components/background-image-container";
-import background from "../../../assets/background-01.webp";
+import background from "../../../assets/background-02.webp";
 import { Button } from "../../../components/ui/button";
 
 const HomePage = () => {

@@ -10,7 +10,7 @@ import { Box } from "@chakra-ui/react";
 import { Line, Board } from "./style";
 import Cell from "./components/cell";
 import Piece, { IPieceCoordinate, IPiecePosition } from "./components/piece";
-import background from "../../../assets/background-02.webp";
+import background from "../../../assets/background-01.webp";
 import BackgroundImageContainer from "../../components/background-image-container";
 import useWebSocket from "../../../hooks/useWebSocket";
 import { useAuth } from "../../../hooks/authProvider";

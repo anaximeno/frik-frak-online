@@ -53,6 +53,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
       localStorage.setItem("auth:token", authToken);
     } catch (error) {
       console.error("Login failed:", error);
+      return Promise.reject(error);
     }
   };
 
