@@ -7,6 +7,8 @@ import { Board, Line } from "../../style";
 import { BOARD_COORDINATES } from "../../constants";
 import Cell from "../../components/cell";
 import { Toaster, toaster } from "../../../../../components/ui/toaster";
+import { GiPlayerTime } from "react-icons/gi";
+import { EmptyState } from "../../../../../components/ui/empty-state";
 
 interface ISelectedPiece extends IPiecePosition {
   pid: string;
@@ -187,8 +189,14 @@ const FrikFrakPlayView: React.FC = () => {
                 ? "Sua vez!"
                 : "Seu adversário começa!",
             type: "info",
-            duration: 10000,
+            duration: 20000,
           });
+          if (body.turn_player_id == user?.player_id && canAddNewPieces)
+            toaster.create({
+              title: "Clique numa célula vazia para adicionar uma peça.",
+              type: "info",
+              duration: 20000,
+            });
           break;
         case "update":
           setBoardState(body.board);
@@ -199,14 +207,20 @@ const FrikFrakPlayView: React.FC = () => {
                 ? "Sua vez!"
                 : "Vez do adversário!",
             type: "info",
-            duration: 10000,
+            duration: 20000,
           });
+          if (body.turn_player_id == user?.player_id && canAddNewPieces)
+            toaster.create({
+              title: "Clique numa célula vazia para adicionar uma peça.",
+              type: "info",
+              duration: 20000,
+            });
           break;
         default:
           break;
       }
     }
-  }, [lastSocketMessage, user]);
+  }, [lastSocketMessage, user, canAddNewPieces]);
 
   useEffect(() => {
     if (
@@ -228,57 +242,67 @@ const FrikFrakPlayView: React.FC = () => {
   return (
     <Box paddingTop="200px" height="100vh" onClick={clearPieceSelection}>
       <Toaster />
-      <Board>
-        <Line style={{ transform: "rotate(45deg)", width: "150%" }} />
-        <Line style={{ transform: "rotate(-45deg)", width: "150%" }} />
-        <Line style={{ transform: "rotate(-90deg)", translate: "150px 0" }} />
-        <Line style={{ transform: "rotate(-90deg)" }} />
-        <Line style={{ transform: "rotate(-90deg)", translate: "-150px 0" }} />
-        <Line style={{ translate: "0px -150px" }} />
-        <Line />
-        <Line style={{ translate: "0px 150px" }} />
-        {BOARD_COORDINATES.map((row, i) =>
-          row.map((cell, j) => (
-            <Cell
-              key={`${i}-${j}`}
-              x={cell.x}
-              y={cell.y}
-              onDropItem={(e) => handleOnCellDrop(e, i, j)}
-              onClick={() => handleOnCellClick(i, j)}
-              disable={turnPlayerId !== user?.player_id}
-            />
-          ))
-        )}
-        {boardState.map((row, i) =>
-          row.map((pid, j) => {
-            if (pid === null) return <></>;
-            const coord = BOARD_COORDINATES[i][j];
-            return (
-              <Piece
-                pid={pid}
-                x={coord.x * 3}
-                y={coord.y * 3}
-                onClick={() => setSelectedPiece({ pid, i, j })}
-                isSelected={
-                  selectedPiece?.pid == pid &&
-                  selectedPiece?.i == i &&
-                  selectedPiece?.j == j
-                }
-                onDragStart={clearPieceSelection}
-                i={i}
-                j={j}
-                color={pid === user?.player_id ? "blue" : "red"}
-                draggable
-                disable={
-                  pid !== user?.player_id ||
-                  turnPlayerId !== user?.player_id ||
-                  canAddNewPieces
-                }
+      {gameId.current ? (
+        <Board>
+          <Line style={{ transform: "rotate(45deg)", width: "150%" }} />
+          <Line style={{ transform: "rotate(-45deg)", width: "150%" }} />
+          <Line style={{ transform: "rotate(-90deg)", translate: "150px 0" }} />
+          <Line style={{ transform: "rotate(-90deg)" }} />
+          <Line
+            style={{ transform: "rotate(-90deg)", translate: "-150px 0" }}
+          />
+          <Line style={{ translate: "0px -150px" }} />
+          <Line />
+          <Line style={{ translate: "0px 150px" }} />
+          {BOARD_COORDINATES.map((row, i) =>
+            row.map((cell, j) => (
+              <Cell
+                key={`${i}-${j}`}
+                x={cell.x}
+                y={cell.y}
+                onDropItem={(e) => handleOnCellDrop(e, i, j)}
+                onClick={() => handleOnCellClick(i, j)}
+                disable={turnPlayerId !== user?.player_id}
               />
-            );
-          })
-        )}
-      </Board>
+            ))
+          )}
+          {boardState.map((row, i) =>
+            row.map((pid, j) => {
+              if (pid === null) return <></>;
+              const coord = BOARD_COORDINATES[i][j];
+              return (
+                <Piece
+                  pid={pid}
+                  x={coord.x * 3}
+                  y={coord.y * 3}
+                  onClick={() => setSelectedPiece({ pid, i, j })}
+                  isSelected={
+                    selectedPiece?.pid == pid &&
+                    selectedPiece?.i == i &&
+                    selectedPiece?.j == j
+                  }
+                  onDragStart={clearPieceSelection}
+                  i={i}
+                  j={j}
+                  color={pid === user?.player_id ? "blue" : "red"}
+                  draggable
+                  disable={
+                    pid !== user?.player_id ||
+                    turnPlayerId !== user?.player_id ||
+                    canAddNewPieces
+                  }
+                />
+              );
+            })
+          )}
+        </Board>
+      ) : (
+        <EmptyState
+          icon={<GiPlayerTime color="teal" />}
+          title="Esperando outros jogadores conectarem..."
+          size="lg"
+        />
+      )}
     </Box>
   );
 };
