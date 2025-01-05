@@ -1,6 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./hooks/authProvider";
-import { ProtectedRoute } from "./ui/components/local/protected-route";
+import { ProtectedRoute } from "./ui/components/protected-route";
 
 import HomePage from "./ui/pages/home";
 import FrikFrakPage from "./ui/pages/frikfrak";

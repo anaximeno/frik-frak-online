@@ -3,7 +3,9 @@ import api from "../services/api";
 
 export interface IUserData {
   id: string;
-  playerId?: string;
+  username: string;
+  email: string;
+  player_id?: string;
 }
 
 export interface ILoginData {
@@ -37,31 +39,37 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
       setToken(authToken);
 
       const interceptorId = api.interceptors.request.use((config) => {
-        if (token) config.headers.Authorization = `Bearer ${token}`;
+        if (authToken) config.headers.Authorization = `Token ${authToken}`;
         return config;
       });
 
       setAuthInterceptorId(interceptorId);
 
-      const userResponse = await api.post("/auth/users/me", undefined, {
-        headers: { Authorization: `Bearer ${authToken}` },
-      });
+      const userResponse = await api.get("/auth/users/me");
 
       setUser(userResponse.data);
-      localStorage.setItem("token", authToken);
+
+      // TODO: use this to initialize the user auth in case it is available
+      localStorage.setItem("auth:token", authToken);
     } catch (error) {
       console.error("Login failed:", error);
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    setToken(null);
+  const logout = async () => {
+    try {
+      await api.post("/auth/token/logout");
+    } catch (e) {
+      console.log("API Logout Error:", e);
+    } finally {
+      setUser(null);
+      setToken(null);
 
-    localStorage.removeItem("token");
+      localStorage.removeItem("auth:token");
 
-    if (authInterceptorId) {
-      api.interceptors.request.eject(authInterceptorId);
+      if (authInterceptorId) {
+        api.interceptors.request.eject(authInterceptorId);
+      }
     }
   };
 

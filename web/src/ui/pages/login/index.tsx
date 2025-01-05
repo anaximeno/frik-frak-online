@@ -7,9 +7,10 @@ import {
   VStack,
 } from "@chakra-ui/react";
 
-import { Field } from "../../components/chakra/field";
 import { useForm } from "react-hook-form";
 import { useAuth } from "../../../hooks/authProvider";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Field } from "../../../components/ui/field";
 
 interface FormValues {
   username: string;
@@ -24,10 +25,14 @@ const LoginPage = () => {
     reset,
     formState: { errors },
   } = useForm<FormValues>();
-
+  const navigate = useNavigate();
   const { login } = useAuth();
+  const location = useLocation();
+  const nextPage = location.state.from || "/";
 
-  const onSubmit = handleSubmit((data) => login(data));
+  const onSubmit = handleSubmit((data) => {
+    login(data).then(() => navigate(nextPage));
+  });
 
   const onClear = () => {
     clearErrors();
@@ -44,6 +49,7 @@ const LoginPage = () => {
         style={{ display: "flex", justifyContent: "center" }}
       >
         <Stack gap="4" align="center" maxW="sm">
+          
           <Field
             label="Utilizador"
             invalid={!!errors.username}

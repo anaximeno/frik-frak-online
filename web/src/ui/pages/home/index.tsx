@@ -1,20 +1,14 @@
-import { HStack, VStack, Heading, Input } from "@chakra-ui/react";
-import { Button } from "../../components/chakra/button";
+import { HStack, VStack, Heading } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import BackgroundImageContainer from "../../components/local/background-image-container";
+import BackgroundImageContainer from "../../components/background-image-container";
 import background from "../../../assets/background-01.webp";
-import { useRef } from "react";
+import { Button } from "../../../components/ui/button";
 
 const HomePage = () => {
-  const inputRef = useRef(null);
   const navigate = useNavigate();
 
   const handlePlayClick = () => {
-    if (inputRef.current) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const playerId = (inputRef.current as any).value;
-      navigate("/frik-frak/play", { state: { playerId } });
-    }
+    navigate("/frik-frak/play");
   };
 
   const handleWatchClick = () => {
@@ -33,7 +27,6 @@ const HomePage = () => {
             Jogar
           </Button>
         </HStack>
-        <Input ref={inputRef} placeholder="Player Id" />
       </VStack>
     </BackgroundImageContainer>
   );

@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { Provider } from "./ui/components/chakra/provider.tsx";
 import App from "./App.tsx";
+import { Provider } from "./components/ui/provider.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
