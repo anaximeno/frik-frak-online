@@ -6,6 +6,7 @@ import { Box } from "@chakra-ui/react";
 import { Board, Line } from "../../style";
 import { BOARD_COORDINATES } from "../../constants";
 import Cell from "../../components/cell";
+import { Toaster, toaster } from "../../../../../components/ui/toaster";
 
 interface ISelectedPiece extends IPiecePosition {
   pid: string;
@@ -74,7 +75,11 @@ const FrikFrakPlayView: React.FC = () => {
     if (!json && !json.from && !json.from.id) return;
 
     if (!checkPieceMoveIsValid(json.from, { i, j })) {
-      // TODO: alert use this is not allowed?
+      toaster.create({
+        type: "error",
+        title: "Movimento ilegal!",
+        duration: 2000,
+      });
       return;
     }
 
@@ -96,7 +101,11 @@ const FrikFrakPlayView: React.FC = () => {
   const handleOnCellClick = (i: number, j: number) => {
     if (selectedPiece) {
       if (!checkPieceMoveIsValid(selectedPiece, { i, j })) {
-        // TODO: alert use this is not allowed?
+        toaster.create({
+          type: "error",
+          title: "Movimento ilegal!",
+          duration: 2000,
+        });
         return;
       }
 
@@ -162,6 +171,7 @@ const FrikFrakPlayView: React.FC = () => {
   };
 
   useEffect(() => {
+    toaster.remove();
     if (lastSocketMessage?.data) {
       const messageType = lastSocketMessage.data["msg_type"];
       const body = lastSocketMessage.data["body"];
@@ -171,16 +181,32 @@ const FrikFrakPlayView: React.FC = () => {
           gameId.current = lastSocketMessage.data.game_id;
           setBoardState(body.board);
           setTurnPlayerId(body.turn_player_id);
+          toaster.create({
+            title:
+              body.turn_player_id == user?.player_id
+                ? "Sua vez!"
+                : "Seu adversário começa!",
+            type: "info",
+            duration: 10000,
+          });
           break;
         case "update":
           setBoardState(body.board);
           setTurnPlayerId(body.turn_player_id);
+          toaster.create({
+            title:
+              body.turn_player_id == user?.player_id
+                ? "Sua vez!"
+                : "Vez do adversário!",
+            type: "info",
+            duration: 10000,
+          });
           break;
         default:
           break;
       }
     }
-  }, [lastSocketMessage]);
+  }, [lastSocketMessage, user]);
 
   useEffect(() => {
     if (
@@ -201,6 +227,7 @@ const FrikFrakPlayView: React.FC = () => {
 
   return (
     <Box paddingTop="200px" height="100vh" onClick={clearPieceSelection}>
+      <Toaster />
       <Board>
         <Line style={{ transform: "rotate(45deg)", width: "150%" }} />
         <Line style={{ transform: "rotate(-45deg)", width: "150%" }} />
