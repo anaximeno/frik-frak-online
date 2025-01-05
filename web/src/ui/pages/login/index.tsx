@@ -6,7 +6,16 @@ import { Field } from "../../../components/ui/field";
 import { PasswordInput } from "../../../components/ui/password-input";
 import { Button } from "../../../components/ui/button";
 import { Alert } from "../../../components/ui/alert";
-import { Heading, Input, Stack, VStack, Card, Text } from "@chakra-ui/react";
+import {
+  Heading,
+  Input,
+  Stack,
+  VStack,
+  Card,
+  Text,
+  HStack,
+  Link,
+} from "@chakra-ui/react";
 import background from "../../../assets/background-02.webp";
 import BackgroundImageContainer from "../../components/background-image-container";
 
@@ -52,9 +61,9 @@ const LoginPage = () => {
           <Heading size="7xl">Frik Frak Online</Heading>
         </VStack>
         <form onSubmit={onSubmit}>
-          <Card.Root>
+          <Card.Root opacity={0.95}>
             <Card.Header>
-              <Text>Login</Text>
+              <Text>Entrar na sua conta</Text>
               {errorMessage && <Alert status="error" title={errorMessage} />}
             </Card.Header>
             <Card.Body>
@@ -86,17 +95,31 @@ const LoginPage = () => {
               </Stack>
             </Card.Body>
             <Card.Footer justifyContent="center">
-              <Button variant="subtle" onClick={onClear} disabled={loading}>
-                Limpar
-              </Button>
-              <Button
-                type="submit"
-                variant="surface"
-                loading={loading}
-                disabled={loading}
-              >
-                Entrar
-              </Button>
+              <VStack>
+                <Text marginBottom="15px">
+                  É novo aqui?{" "}
+                  <Link
+                    variant="underline"
+                    href="/register"
+                    colorPalette="teal"
+                  >
+                    Cadastre-se.
+                  </Link>
+                </Text>
+                <HStack>
+                  <Button variant="subtle" onClick={onClear} disabled={loading}>
+                    Limpar
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="surface"
+                    loading={loading}
+                    disabled={loading}
+                  >
+                    Entrar
+                  </Button>
+                </HStack>
+              </VStack>
             </Card.Footer>
           </Card.Root>
         </form>
