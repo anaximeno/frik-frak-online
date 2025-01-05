@@ -25,8 +25,19 @@ SECRET_KEY = 'django-insecure-c7q0kktjnqa%-3ley4b$$2wpw4u=2hp3n3*c4sz^ea1v@5-p_!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
+
+# CORS Headers
+# https://github.com/ottoyiu/django-cors-headers/#configuration
+
+# If the option below is true then the 'CORS_ALLOWED_ORIGINS' option is ignored.
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOWED_ORIGINS = [
+    # Add addresses and comment 'CORS_ALLOW_ALL_ORIGINS' for this to take effect
+]
 
 # Application definition
 
@@ -40,6 +51,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # Installed from Libs
     'channels',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'djoser',
+    'corsheaders',
     # Local Apps
     'BackendServer',
     'GameServer',
@@ -48,6 +63,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',

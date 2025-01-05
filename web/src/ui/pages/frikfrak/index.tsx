@@ -13,6 +13,7 @@ import Piece, { IPieceCoordinate, IPiecePosition } from "./components/piece";
 import background from "../../../assets/background-02.webp";
 import BackgroundImageContainer from "../../components/local/background-image-container";
 import useWebSocket from "../../../hooks/useWebSocket";
+import { useLocation } from "react-router-dom";
 
 const BOARD_COORDINATES: IPieceCoordinate[][] = [
   [
@@ -39,6 +40,12 @@ interface ISelectedPiece extends IPiecePosition {
 }
 
 const FrikFrakPage = () => {
+  const location = useLocation();
+
+  const [playerId, setPlayerId] = useState<string>(
+    location.state.playerId ?? PLAYER_ID
+  );
+
   const [boardState, setBoardState] = useState<Array<Array<string | null>>>([
     [null, null, null],
     [null, null, null],
@@ -54,7 +61,7 @@ const FrikFrakPage = () => {
   const [turnPlayerId, setTurnPlayerId] = useState<string>("");
 
   const { lastSocketMessage, sendSocketMessage, socketConnectionStatus } =
-    useWebSocket(`ws://127.0.0.1:8000/ws/game/play/?player_id=${PLAYER_ID}`);
+    useWebSocket(`ws://127.0.0.1:8000/ws/game/play/?player_id=${playerId}`);
 
   const updateBoardPieceStatePosition = useCallback(
     (params: { from?: IPiecePosition; to: IPiecePosition; pid: string }) => {
@@ -68,20 +75,20 @@ const FrikFrakPage = () => {
   );
 
   const canAddNewPieces = useMemo(() => {
-    if (turnPlayerId !== PLAYER_ID) return false;
+    if (turnPlayerId !== playerId) return false;
 
     let totalPlayerPieces = 0;
 
     for (const row of boardState) {
       for (const slot of row) {
-        if (slot && slot === PLAYER_ID) {
+        if (slot && slot === playerId) {
           totalPlayerPieces++;
         }
       }
     }
 
     return totalPlayerPieces < 3;
-  }, [boardState, turnPlayerId]);
+  }, [boardState, turnPlayerId, playerId]);
 
   const checkPieceMoveIsValid = (
     from: IPiecePosition,
@@ -145,12 +152,12 @@ const FrikFrakPage = () => {
       // NOTE: Update localy first, then wait for message from socket
       // validating the correct position:
       updateBoardPieceStatePosition({
-        pid: PLAYER_ID,
+        pid: playerId,
         to: { i, j },
       });
 
       sendPiecePositionChangeThruSocket({
-        pid: PLAYER_ID,
+        pid: playerId,
         to: { i, j },
       });
 
@@ -212,13 +219,13 @@ const FrikFrakPage = () => {
       // Send PLAY message
       sendSocketMessage({
         msg_type: "play",
-        player_id: PLAYER_ID,
+        player_id: playerId,
         body: {
           vs: "user",
         },
       });
     }
-  }, [gameId, sendSocketMessage, socketConnectionStatus]);
+  }, [gameId, sendSocketMessage, socketConnectionStatus, playerId]);
 
   return (
     <BackgroundImageContainer image={background} onClick={clearPieceSelection}>
@@ -242,7 +249,7 @@ const FrikFrakPage = () => {
                 y={cell.y}
                 onDropItem={(e) => handleOnCellDrop(e, i, j)}
                 onClick={() => handleOnCellClick(i, j)}
-                disable={turnPlayerId !== PLAYER_ID}
+                disable={turnPlayerId !== playerId}
               />
             ))
           )}
@@ -264,9 +271,9 @@ const FrikFrakPage = () => {
                   onDragStart={clearPieceSelection}
                   i={i}
                   j={j}
-                  color={pid === PLAYER_ID ? "blue" : "red"}
+                  color={pid === playerId ? "blue" : "red"}
                   draggable
-                  disable={pid !== PLAYER_ID || turnPlayerId !== PLAYER_ID}
+                  disable={pid !== playerId || turnPlayerId !== playerId}
                 />
               );
             })
