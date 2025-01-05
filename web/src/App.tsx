@@ -16,9 +16,14 @@ const App = () => {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route element={<ProtectedRoute />}>
-            <Route path="/frik-frak/play" element={<FrikFrakPage />} />
-            {/* TODO: lists ongoing games*/}
-            {/* <Route path="/frik-frak/watch" element={<FrikFrakPage />} /> */}
+            <Route
+              path="/frik-frak/play"
+              element={<FrikFrakPage view="play" />}
+            />
+            <Route
+              path="/frik-frak/watch"
+              element={<FrikFrakPage view="watch" />}
+            />
             {/* TODO: shows ongoing game play*/}
             {/* <Route path="/frik-frak/watch/:gameId" element={<FrikFrakPage />} /> */}
             {/* TODO: shows leaderboard*/}
