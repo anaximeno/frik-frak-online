@@ -27,6 +27,9 @@ const FrikFrakPlayView: React.FC = () => {
     null
   );
 
+  // TODO: store the game id in local storage and try to reconnect
+  // to the game in case it hasn't ended yet (create a REST api route for checking this)
+  // otherwise remove the game id from storage and wait other players entering the game.
   const gameId = useRef<string>("");
 
   const [turnPlayerId, setTurnPlayerId] = useState<string>("");
@@ -186,17 +189,25 @@ const FrikFrakPlayView: React.FC = () => {
           toaster.create({
             title:
               body.turn_player_id == user?.player_id
-                ? "Sua vez!"
-                : "Seu adversário começa!",
+                ? "Tu começas!"
+                : "Teu adversário começa!",
             type: "info",
             duration: 20000,
           });
-          if (body.turn_player_id == user?.player_id && canAddNewPieces)
-            toaster.create({
-              title: "Clique numa célula vazia para adicionar uma peça.",
-              type: "info",
-              duration: 20000,
-            });
+          if (body.turn_player_id == user?.player_id) {
+            if (canAddNewPieces)
+              toaster.create({
+                title: "Clique numa célula vazia para adicionar uma peça.",
+                type: "info",
+                duration: 20000,
+              });
+            else
+              toaster.create({
+                title: "Movimente uma peça para outra posição.",
+                type: "info",
+                duration: 20000,
+              });
+          }
           break;
         case "update":
           setBoardState(body.board);
@@ -204,17 +215,25 @@ const FrikFrakPlayView: React.FC = () => {
           toaster.create({
             title:
               body.turn_player_id == user?.player_id
-                ? "Sua vez!"
+                ? "Tua vez!"
                 : "Vez do adversário!",
             type: "info",
             duration: 20000,
           });
-          if (body.turn_player_id == user?.player_id && canAddNewPieces)
-            toaster.create({
-              title: "Clique numa célula vazia para adicionar uma peça.",
-              type: "info",
-              duration: 20000,
-            });
+          if (body.turn_player_id == user?.player_id) {
+            if (canAddNewPieces)
+              toaster.create({
+                title: "Clique numa célula vazia para adicionar uma peça.",
+                type: "info",
+                duration: 20000,
+              });
+            else
+              toaster.create({
+                title: "Movimente uma peça para outra posição.",
+                type: "info",
+                duration: 20000,
+              });
+          }
           break;
         default:
           break;

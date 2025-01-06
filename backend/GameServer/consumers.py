@@ -5,6 +5,7 @@ from asgiref.sync import async_to_sync
 from urllib.parse import parse_qs
 
 from .services import GamingService
+from .helpers import find
 
 gaming_service = GamingService.get_instance()
 
@@ -13,7 +14,9 @@ class GameServerConsumer(WebsocketConsumer):
     """Serves game info."""
 
     def connect(self):
-        self.game_id = self.scope["url_route"]["kwargs"]["game_id"]
+        query_string = self.scope["query_string"].decode()
+        query_params = parse_qs(query_string)
+        self.game_id = query_params.get("game_id", [None])[0]
         # TODO: send current state for intialization
         async_to_sync(self.channel_layer.group_add)(
             "game-play-group", self.channel_name
@@ -44,13 +47,10 @@ class GamePlayConsumer(WebsocketConsumer):
     """Sends and receive playing time data."""
 
     def connect(self):
-        query_string = self.scope['query_string'].decode()
-        query_params = parse_qs(query_string)
-        # In case of disconnection and reconnection
-        self.game_id = query_params.get('game_id', [None])[0]
-        self.player_id = query_params.get('player_id', [None])[0]
-        self.against_player_id = query_params.get('adversary_id', [None])[0]
-        self.against_player_kind = query_params.get('vs', [None])[0]
+        self.game_id = None
+        self.player_id = None
+        self.against_player_id = None
+        self.against_player_kind = None
         async_to_sync(self.channel_layer.group_add)(
             "game-play-group", self.channel_name
         )
@@ -103,8 +103,10 @@ class GamePlayConsumer(WebsocketConsumer):
             return
 
         self.game_id = event["game_id"]
-        [p1, p2] = event["content"]["players_ids"]
-        self.against_player_id = p1 if self.player_id == p2 else p2
+        players = event["content"]["players_ids"]
+        self.against_player_id = find(players, lambda p: p != self.player_id)
+        event["content"]["against_player_id"] = self.against_player_id
+        event["content"]["player_id"] = self.player_id
 
         self.send(
             text_data=json.dumps(
@@ -118,6 +120,8 @@ class GamePlayConsumer(WebsocketConsumer):
 
     def game_update(self, event):
         if gaming_service.player_in_game(self.player_id, event["game_id"]):
+            event["content"]["against_player_id"] = self.against_player_id
+            event["content"]["player_id"] = self.player_id
             self.send(
                 text_data=json.dumps(
                     {
