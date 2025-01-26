@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useAuth } from "../../../../../hooks/authProvider";
+import { IUserData, useAuth } from "../../../../../hooks/authProvider";
 import useWebSocket from "../../../../../hooks/useWebSocket";
 import Piece, { IPiecePosition } from "../../components/piece";
 import { Box } from "@chakra-ui/react";
@@ -9,13 +9,14 @@ import Cell from "../../components/cell";
 import { Toaster, toaster } from "../../../../../components/ui/toaster";
 import { GiPlayerTime } from "react-icons/gi";
 import { EmptyState } from "../../../../../components/ui/empty-state";
+import UserAvatar from "../../../../components/user-avatar";
 
 interface ISelectedPiece extends IPiecePosition {
   pid: string;
 }
 
 const FrikFrakPlayView: React.FC = () => {
-  const { user } = useAuth();
+  const { user, fetchPlayerUserInfo } = useAuth();
 
   const [boardState, setBoardState] = useState<Array<Array<string | null>>>([
     [null, null, null],
@@ -33,6 +34,9 @@ const FrikFrakPlayView: React.FC = () => {
   const gameId = useRef<string>("");
 
   const [turnPlayerId, setTurnPlayerId] = useState<string>("");
+  const [againstPlayerUser, setAgainstPlayerUser] = useState<IUserData | null>(
+    null
+  );
 
   const { lastSocketMessage, sendSocketMessage, socketConnectionStatus } =
     useWebSocket(`ws://127.0.0.1:8000/ws/game/play/`);
@@ -175,6 +179,14 @@ const FrikFrakPlayView: React.FC = () => {
     if (selectedPiece) setSelectedPiece(null);
   };
 
+  const getAgainstPlayerUser = useCallback(
+    async (playerId: string) => {
+      const againstPlayerUser = await fetchPlayerUserInfo(playerId);
+      setAgainstPlayerUser(againstPlayerUser);
+    },
+    [fetchPlayerUserInfo]
+  );
+
   useEffect(() => {
     toaster.remove();
     if (lastSocketMessage?.data) {
@@ -186,13 +198,15 @@ const FrikFrakPlayView: React.FC = () => {
           gameId.current = lastSocketMessage.data.game_id;
           setBoardState(body.board);
           setTurnPlayerId(body.turn_player_id);
+          getAgainstPlayerUser(body.against_player_id);
           toaster.create({
             title:
               body.turn_player_id == user?.player_id
                 ? "Tu começas!"
                 : "Teu adversário começa!",
             type: "info",
-            duration: 20000,
+            duration: 10000,
+            action: { label: "OK", onClick: () => null },
           });
           if (body.turn_player_id == user?.player_id) {
             if (canAddNewPieces)
@@ -200,12 +214,14 @@ const FrikFrakPlayView: React.FC = () => {
                 title: "Clique numa célula vazia para adicionar uma peça.",
                 type: "info",
                 duration: 20000,
+                action: { label: "OK", onClick: () => null },
               });
             else
               toaster.create({
                 title: "Movimente uma peça para outra posição.",
                 type: "info",
                 duration: 20000,
+                action: { label: "OK", onClick: () => null },
               });
           }
           break;
@@ -218,7 +234,8 @@ const FrikFrakPlayView: React.FC = () => {
                 ? "Tua vez!"
                 : "Vez do adversário!",
             type: "info",
-            duration: 20000,
+            duration: 10000,
+            action: { label: "OK", onClick: () => null },
           });
           if (body.turn_player_id == user?.player_id) {
             if (canAddNewPieces)
@@ -226,12 +243,14 @@ const FrikFrakPlayView: React.FC = () => {
                 title: "Clique numa célula vazia para adicionar uma peça.",
                 type: "info",
                 duration: 20000,
+                action: { label: "OK", onClick: () => null },
               });
             else
               toaster.create({
                 title: "Movimente uma peça para outra posição.",
                 type: "info",
                 duration: 20000,
+                action: { label: "OK", onClick: () => null },
               });
           }
           break;
@@ -239,7 +258,7 @@ const FrikFrakPlayView: React.FC = () => {
           break;
       }
     }
-  }, [lastSocketMessage, user, canAddNewPieces]);
+  }, [lastSocketMessage, user, canAddNewPieces, getAgainstPlayerUser]);
 
   useEffect(() => {
     if (
@@ -262,59 +281,75 @@ const FrikFrakPlayView: React.FC = () => {
     <Box paddingTop="200px" height="100vh" onClick={clearPieceSelection}>
       <Toaster />
       {gameId.current ? (
-        <Board>
-          <Line style={{ transform: "rotate(45deg)", width: "150%" }} />
-          <Line style={{ transform: "rotate(-45deg)", width: "150%" }} />
-          <Line style={{ transform: "rotate(-90deg)", translate: "150px 0" }} />
-          <Line style={{ transform: "rotate(-90deg)" }} />
-          <Line
-            style={{ transform: "rotate(-90deg)", translate: "-150px 0" }}
-          />
-          <Line style={{ translate: "0px -150px" }} />
-          <Line />
-          <Line style={{ translate: "0px 150px" }} />
-          {BOARD_COORDINATES.map((row, i) =>
-            row.map((cell, j) => (
-              <Cell
-                key={`${i}-${j}`}
-                x={cell.x}
-                y={cell.y}
-                onDropItem={(e) => handleOnCellDrop(e, i, j)}
-                onClick={() => handleOnCellClick(i, j)}
-                disable={turnPlayerId !== user?.player_id}
-              />
-            ))
-          )}
-          {boardState.map((row, i) =>
-            row.map((pid, j) => {
-              if (pid === null) return <></>;
-              const coord = BOARD_COORDINATES[i][j];
-              return (
-                <Piece
-                  pid={pid}
-                  x={coord.x * 3}
-                  y={coord.y * 3}
-                  onClick={() => setSelectedPiece({ pid, i, j })}
-                  isSelected={
-                    selectedPiece?.pid == pid &&
-                    selectedPiece?.i == i &&
-                    selectedPiece?.j == j
-                  }
-                  onDragStart={clearPieceSelection}
-                  i={i}
-                  j={j}
-                  color={pid === user?.player_id ? "blue" : "red"}
-                  draggable
-                  disable={
-                    pid !== user?.player_id ||
-                    turnPlayerId !== user?.player_id ||
-                    canAddNewPieces
-                  }
+        <>
+          <Board>
+            <Line style={{ transform: "rotate(45deg)", width: "150%" }} />
+            <Line style={{ transform: "rotate(-45deg)", width: "150%" }} />
+            <Line
+              style={{ transform: "rotate(-90deg)", translate: "150px 0" }}
+            />
+            <Line style={{ transform: "rotate(-90deg)" }} />
+            <Line
+              style={{ transform: "rotate(-90deg)", translate: "-150px 0" }}
+            />
+            <Line style={{ translate: "0px -150px" }} />
+            <Line />
+            <Line style={{ translate: "0px 150px" }} />
+            {BOARD_COORDINATES.map((row, i) =>
+              row.map((cell, j) => (
+                <Cell
+                  key={`${i}-${j}`}
+                  x={cell.x}
+                  y={cell.y}
+                  onDropItem={(e) => handleOnCellDrop(e, i, j)}
+                  onClick={() => handleOnCellClick(i, j)}
+                  disable={turnPlayerId !== user?.player_id}
                 />
-              );
-            })
+              ))
+            )}
+            {boardState.map((row, i) =>
+              row.map((pid, j) => {
+                if (pid === null) return <></>;
+                const coord = BOARD_COORDINATES[i][j];
+                return (
+                  <Piece
+                    pid={pid}
+                    x={coord.x * 3}
+                    y={coord.y * 3}
+                    onClick={() => setSelectedPiece({ pid, i, j })}
+                    isSelected={
+                      selectedPiece?.pid == pid &&
+                      selectedPiece?.i == i &&
+                      selectedPiece?.j == j
+                    }
+                    onDragStart={clearPieceSelection}
+                    i={i}
+                    j={j}
+                    color={pid === user?.player_id ? "blue" : "red"}
+                    draggable
+                    disable={
+                      pid !== user?.player_id ||
+                      turnPlayerId !== user?.player_id ||
+                      canAddNewPieces
+                    }
+                  />
+                );
+              })
+            )}
+          </Board>
+          {againstPlayerUser && (
+            <UserAvatar
+              username={againstPlayerUser.username}
+              colorPalette="red"
+              style={{
+                position: "absolute",
+                zIndex: 1,
+                bottom: "10px",
+                right: "10px",
+              }}
+            />
           )}
-        </Board>
+        </>
       ) : (
         <EmptyState
           icon={<GiPlayerTime color="teal" />}

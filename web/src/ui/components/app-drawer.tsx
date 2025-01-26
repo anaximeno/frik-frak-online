@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, defineStyle } from "@chakra-ui/react";
+import { Button } from "@chakra-ui/react";
 import {
   DrawerActionTrigger,
   DrawerBackdrop,
@@ -15,8 +15,8 @@ import {
 } from "../../components/ui/drawer";
 import { useState } from "react";
 import { useAuth } from "../../hooks/authProvider";
-import { Avatar } from "../../components/ui/avatar";
 import { TbLogout2 } from "react-icons/tb";
+import UserAvatar from "./user-avatar";
 
 const AppDrawer: React.FC = () => {
   const [open, setOpen] = useState(false);
@@ -36,11 +36,10 @@ const AppDrawer: React.FC = () => {
             cursor: "pointer",
           }}
         >
-          <Avatar
-            name={user.username}
-            colorPalette="blue"
+          <UserAvatar
+            username={user.username}
             onClick={() => setOpen(true)}
-            css={ringCss}
+            colorPalette="blue"
           />
         </DrawerTrigger>
       )}
@@ -66,12 +65,5 @@ const AppDrawer: React.FC = () => {
     </DrawerRoot>
   );
 };
-
-const ringCss = defineStyle({
-  outlineWidth: "2px",
-  outlineColor: "colorPalette.500",
-  outlineOffset: "2px",
-  outlineStyle: "solid",
-});
 
 export default AppDrawer;

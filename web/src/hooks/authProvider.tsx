@@ -23,6 +23,7 @@ interface AuthContextType {
   login: (loginData: ILoginData) => Promise<void>;
   logout: () => Promise<void>;
   register: (registerDate: IPlayerRegisterData) => Promise<void>;
+  fetchPlayerUserInfo: (playerId: string) => Promise<IUserData>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -55,13 +56,16 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
       if (authInterceptorId) api.interceptors.request.eject(authInterceptorId);
 
       const interceptorId = api.interceptors.request.use((config) => {
-        if (authToken) config.headers.Authorization = `Token ${authToken}`;
+        const t = token ?? localStorage.getItem("auth:token");
+        if (t) config.headers.Authorization = `Token ${token}`;
         return config;
       });
 
       setAuthInterceptorId(interceptorId);
 
-      const userResponse = await api.get("/auth/users/me");
+      const userResponse = await api.get("/auth/users/me", {
+        headers: { Authorization: `Token ${authToken}` },
+      });
 
       setUser(userResponse.data);
 
@@ -115,7 +119,8 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
       if (authInterceptorId) api.interceptors.request.eject(authInterceptorId);
 
       const interceptorId = api.interceptors.request.use((config) => {
-        if (authToken) config.headers.Authorization = `Token ${authToken}`;
+        const t = token ?? localStorage.getItem("auth:token");
+        if (t) config.headers.Authorization = `Token ${t}`;
         return config;
       });
 
@@ -129,8 +134,21 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
     }
   };
 
+  const fetchPlayerUserInfo = async (playerId: string): Promise<IUserData> => {
+    const playerData = await api.get(`players/${playerId}`);
+    const user: IUserData = {
+      id: playerData.data.user_id,
+      email: playerData.data.email,
+      username: playerData.data.username,
+      player_id: playerData.data.id,
+    };
+    return user;
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, register }}>
+    <AuthContext.Provider
+      value={{ user, token, login, logout, register, fetchPlayerUserInfo }}
+    >
       {children}
     </AuthContext.Provider>
   );

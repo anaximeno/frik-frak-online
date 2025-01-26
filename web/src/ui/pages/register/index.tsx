@@ -120,7 +120,7 @@ const RegisterPage = () => {
                     href={`/login?next=${nextPage}`}
                     colorPalette="teal"
                   >
-                    Entre no sistema.
+                    Entre aqui.
                   </Link>
                 </Text>
                 <HStack>
