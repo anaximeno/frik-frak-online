@@ -6,10 +6,12 @@ import HomePage from "./ui/pages/home";
 import FrikFrakPage from "./ui/pages/frikfrak";
 import LoginPage from "./ui/pages/login";
 import RegisterPage from "./ui/pages/register";
+import AppDrawer from "./ui/components/app-drawer";
 
 const App = () => {
   return (
     <AuthProvider>
+      <AppDrawer />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<HomePage />} />
