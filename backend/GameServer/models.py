@@ -1,7 +1,12 @@
 import uuid
+import os
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.files.storage import FileSystemStorage
+from BackendServer.settings import BASE_DIR
+
+imgfs = FileSystemStorage(location=os.path.join(BASE_DIR, '/images'), base_url="/images")
 
 
 class Player(models.Model):
@@ -18,6 +23,12 @@ class Player(models.Model):
         on_delete=models.CASCADE,
         related_name="player",
         unique=True,
+    )
+    profile_picture = models.ImageField(
+        help_text="The player's profile picture",
+        null=True,
+        blank=True,
+        storage=imgfs,
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

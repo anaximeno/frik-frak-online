@@ -13,11 +13,16 @@ export interface ILoginData {
   password: string;
 }
 
+export interface IPlayerRegisterData extends ILoginData {
+  email: string;
+}
+
 interface AuthContextType {
   user: IUserData | null;
   token: string | null;
   login: (loginData: ILoginData) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
+  register: (registerDate: IPlayerRegisterData) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -46,6 +51,8 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
       const authToken = authTokenResponse.data.auth_token;
 
       setToken(authToken);
+
+      if (authInterceptorId) api.interceptors.request.eject(authInterceptorId);
 
       const interceptorId = api.interceptors.request.use((config) => {
         if (authToken) config.headers.Authorization = `Token ${authToken}`;
@@ -84,8 +91,46 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
     }
   };
 
+  const register = async (registerData: IPlayerRegisterData) => {
+    try {
+      const playerData = await api.post("players/", registerData);
+
+      const user: IUserData = {
+        id: playerData.data.user_id,
+        email: playerData.data.email,
+        username: playerData.data.username,
+        player_id: playerData.data.id,
+      };
+
+      setUser(user);
+
+      const authTokenResponse = await api.post(
+        "/auth/token/login",
+        registerData as ILoginData
+      );
+      const authToken = authTokenResponse.data.auth_token;
+
+      setToken(authToken);
+
+      if (authInterceptorId) api.interceptors.request.eject(authInterceptorId);
+
+      const interceptorId = api.interceptors.request.use((config) => {
+        if (authToken) config.headers.Authorization = `Token ${authToken}`;
+        return config;
+      });
+
+      setAuthInterceptorId(interceptorId);
+
+      localStorage.setItem("auth:token", authToken);
+      localStorage.setItem("auth:user", JSON.stringify(user));
+    } catch (error) {
+      console.error("Register failed:", error);
+      return Promise.reject(error);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
+    <AuthContext.Provider value={{ user, token, login, logout, register }}>
       {children}
     </AuthContext.Provider>
   );
