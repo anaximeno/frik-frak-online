@@ -74,8 +74,22 @@ const FrikFrakPlayView: React.FC = () => {
     from: IPiecePosition,
     to: IPiecePosition
   ): boolean => {
-    if (Math.abs(to.i - from.i) <= 1 && Math.abs(to.j - from.j) <= 1)
-      return true;
+    if (Math.abs(to.i - from.i) <= 1 && Math.abs(to.j - from.j) <= 1) {
+      const starPoses = [
+        [0, 1],
+        [1, 0],
+        [2, 1],
+        [1, 2],
+      ];
+
+      const idxFrom = starPoses.findIndex(
+        (v) => v[0] === from.i && v[1] === from.j
+      );
+
+      const idxTo = starPoses.findIndex((v) => v[0] === to.i && v[1] === to.j);
+
+      return !(idxFrom !== -1 && idxTo !== -1);
+    }
     return false;
   };
 
