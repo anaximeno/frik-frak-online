@@ -7,8 +7,11 @@ import { Board, Line } from "../../style";
 import { BOARD_COORDINATES } from "../../constants";
 import Cell from "../../components/cell";
 import { Toaster, toaster } from "../../../../../components/ui/toaster";
-import { GiPlayerTime } from "react-icons/gi";
 import { EmptyState } from "../../../../../components/ui/empty-state";
+import {
+  ProgressCircleRing,
+  ProgressCircleRoot,
+} from "../../../../../components/ui/progress-circle";
 import UserAvatar from "../../../../components/user-avatar";
 import GameFinishedDialog from "../../../../components/game-finished-dialog";
 
@@ -402,7 +405,11 @@ const FrikFrakPlayView: React.FC = () => {
         </>
       ) : (
         <EmptyState
-          icon={<GiPlayerTime color="teal" />}
+          icon={
+            <ProgressCircleRoot value={null} size="lg">
+              <ProgressCircleRing cap="round" />
+            </ProgressCircleRoot>
+          }
           title="Esperando outros jogadores conectarem..."
           size="lg"
         />

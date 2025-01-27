@@ -8,6 +8,10 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import { getGames, IGameData } from "../../../../../services/game";
 import { IPaginatedResponse } from "../../../../../helpers/types";
+import {
+  ProgressBar,
+  ProgressRoot,
+} from "../../../../../components/ui/progress";
 
 interface PageChangeDetails {
   page: number;
@@ -17,10 +21,18 @@ interface PageChangeDetails {
 const FrikFrakGalleryView: React.FC = () => {
   const [games, setGames] = useState<IPaginatedResponse<IGameData>>();
   const [page, setPage] = useState<number>(1);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const getAllGames = useCallback(async () => {
-    const response = await getGames({ page });
-    setGames(response.data as IPaginatedResponse<IGameData>);
+    setLoading(true);
+    try {
+      const response = await getGames({ page });
+      setGames(response.data as IPaginatedResponse<IGameData>);
+    } catch (e) {
+      console.log("Error Trying to Get Game Data:", e);
+    } finally {
+      setLoading(false);
+    }
   }, [page]);
 
   const handlePageChange = async (details: PageChangeDetails) => {
@@ -36,6 +48,11 @@ const FrikFrakGalleryView: React.FC = () => {
       <Card.Root>
         <Card.Header>
           <Heading size="xl">Jogos</Heading>
+          {loading && (
+            <ProgressRoot maxW="100%" value={100} striped animated>
+              <ProgressBar />
+            </ProgressRoot>
+          )}
         </Card.Header>
         <Card.Body>
           <Table.Root size="sm" variant="outline" striped>
