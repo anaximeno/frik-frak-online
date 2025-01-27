@@ -67,7 +67,7 @@ class GamingService:
             board[line][col] = player_id
 
         game.board = board
-        game.save(update_fields=["board"])
+        game.save(update_fields=["board", "updated_at"])
 
         [p1, p2] = game.players.get_queryset()
         turn_player = str(p2.id) if player_id == str(p1.id) else str(p1.id)
@@ -75,7 +75,7 @@ class GamingService:
         if winner := self.check_game_winner(game.board, p1, p2):
             game.winner = winner
             game.state = "ended"
-            game.save(update_fields=["winner", "state"])
+            game.save(update_fields=["winner", "state", "updated_at"])
             async_to_sync(self.channel_layer.group_send)(
                 "game-play-group",
                 {
@@ -143,7 +143,7 @@ class GamingService:
             player = Player.objects.get(id=player_id)
             game.winner = p2 if player.id == p1.id else p1
             game.state = "ended"
-            game.save(update_fields=["winner", "state"])
+            game.save(update_fields=["winner", "state", "updated_at"])
             async_to_sync(self.channel_layer.group_send)(
                 "game-play-group",
                 {
