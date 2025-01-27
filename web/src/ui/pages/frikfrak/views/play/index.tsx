@@ -39,6 +39,7 @@ const FrikFrakPlayView: React.FC = () => {
     null
   );
   const [winnerPlayerId, setWinnerPlayerId] = useState<string | null>(null);
+  const [gameWonInfo, setGameWonInfo] = useState<string | null>(null);
 
   const { lastSocketMessage, sendSocketMessage, socketConnectionStatus } =
     useWebSocket(`ws://127.0.0.1:8000/ws/game/play/`);
@@ -195,6 +196,19 @@ const FrikFrakPlayView: React.FC = () => {
     if (selectedPiece) setSelectedPiece(null);
   };
 
+  const gameFinishedNote: string | undefined = useMemo(() => {
+    switch (gameWonInfo) {
+      case "withdrawal":
+        return "O adversário desistiu do jogo.";
+      case "line-formed":
+        if (user?.player_id == winnerPlayerId)
+          return "Conseguiste formar uma linha com as peças!";
+        else return "O Adversário conseguiu formar uma linha com as peças!";
+      default:
+        return undefined;
+    }
+  }, [gameWonInfo, winnerPlayerId, user]);
+
   const getAgainstPlayerUser = useCallback(
     async (playerId: string) => {
       const againstPlayerUser = await fetchPlayerUserInfo(playerId);
@@ -273,6 +287,7 @@ const FrikFrakPlayView: React.FC = () => {
         case "finish":
           setBoardState(body.board);
           setWinnerPlayerId(body.winner_player_id);
+          setGameWonInfo(body.won_for);
           toaster.create({
             title: "O Jogo Terminou!",
             type: "info",
@@ -379,6 +394,7 @@ const FrikFrakPlayView: React.FC = () => {
             <GameFinishedDialog
               adversary={againstPlayerUser}
               user_won={user?.player_id == winnerPlayerId}
+              note={gameFinishedNote}
             />
           )}
         </>
