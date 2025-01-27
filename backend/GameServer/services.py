@@ -72,6 +72,13 @@ class GamingService:
 
         [p1, p2] = [str(p.id) for p in game.players.get_queryset()]
         turn_player = p2 if player_id == p1 else p1
+
+        # TODO
+        # winner = self.check_game_winner(game.board)
+        # if winner:
+        #     game.winner = winner
+        #     game.save(update_fields=["winner"])
+
         async_to_sync(self.channel_layer.group_send)(
             "game-play-group",
             {
@@ -85,6 +92,9 @@ class GamingService:
             },
         )
 
+    def check_game_winner(self, board: list[list[str]]) -> str | None:
+        return None  # XXX: properly implement this
+
     def player_in_game(self, player_id: str, game_id: str) -> bool:
         player = Player.objects.get(id=player_id)
         return Game.objects.get(id=game_id).players.contains(player)
@@ -93,9 +103,23 @@ class GamingService:
         if player_id in self.player_wait_list:
             self.player_wait_list.remove(player_id)
 
-        # TODO: wait some time for reconnection before ending the game
         for game in Game.objects.filter(players__id=player_id, state="ongoing"):
             [p1, p2] = game.players.get_queryset()
-            game.winner = p2 if player_id == p1.id else p1  # XXX: something's not right
+            player = Player.objects.get(id=player_id)
+            game.winner = p2 if player.id == p1.id else p1
             game.state = "ended"
             game.save(update_fields=["winner", "state"])
+            async_to_sync(self.channel_layer.group_send)(
+                "game-play-group",
+                {
+                    "type": "game.finish",
+                    "game_id": str(game.id),
+                    "content": {
+                        "board": game.board,
+                        "turn_player_id": None,
+                        "players_ids": [str(p1.id), str(p2.id)],
+                        "winner_player_id": str(game.winner.id),
+                        "won_for": "withdrawal",
+                    },
+                },
+            )

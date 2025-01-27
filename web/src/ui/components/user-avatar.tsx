@@ -24,6 +24,7 @@ export interface IUserAvatarProps {
     | "bg"
     | "fg"
     | "border";
+  size?: "full" | "2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
   onClick?: (event: React.MouseEvent) => void;
   style?: React.CSSProperties;
 }
@@ -35,6 +36,7 @@ const UserAvatar: React.FC<IUserAvatarProps> = (props: IUserAvatarProps) => {
       name={props.username}
       colorPalette={props.colorPalette}
       onClick={props.onClick}
+      size={props.size}
       css={ringCss}
     />
   );

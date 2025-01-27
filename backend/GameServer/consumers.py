@@ -143,3 +143,17 @@ class GamePlayConsumer(WebsocketConsumer):
                     },
                 )
             )
+
+    def game_finish(self, event):
+        if gaming_service.player_in_game(self.player_id, event["game_id"]):
+            event["content"]["against_player_id"] = self.against_player_id
+            event["content"]["player_id"] = self.player_id
+            self.send(
+                text_data=json.dumps(
+                    {
+                        "msg_type": "finish",
+                        "game_id": event["game_id"],
+                        "body": event["content"],
+                    },
+                )
+            )

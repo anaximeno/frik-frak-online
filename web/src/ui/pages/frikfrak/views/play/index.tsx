@@ -10,6 +10,7 @@ import { Toaster, toaster } from "../../../../../components/ui/toaster";
 import { GiPlayerTime } from "react-icons/gi";
 import { EmptyState } from "../../../../../components/ui/empty-state";
 import UserAvatar from "../../../../components/user-avatar";
+import GameFinishedDialog from "../../../../components/game-finished-dialog";
 
 interface ISelectedPiece extends IPiecePosition {
   pid: string;
@@ -37,6 +38,7 @@ const FrikFrakPlayView: React.FC = () => {
   const [againstPlayerUser, setAgainstPlayerUser] = useState<IUserData | null>(
     null
   );
+  const [winnerPlayerId, setWinnerPlayerId] = useState<string | null>(null);
 
   const { lastSocketMessage, sendSocketMessage, socketConnectionStatus } =
     useWebSocket(`ws://127.0.0.1:8000/ws/game/play/`);
@@ -205,7 +207,7 @@ const FrikFrakPlayView: React.FC = () => {
                 ? "Tu começas!"
                 : "Teu adversário começa!",
             type: "info",
-            duration: 10000,
+            duration: 8000,
             action: { label: "OK", onClick: () => null },
           });
           if (body.turn_player_id == user?.player_id) {
@@ -234,7 +236,7 @@ const FrikFrakPlayView: React.FC = () => {
                 ? "Tua vez!"
                 : "Vez do adversário!",
             type: "info",
-            duration: 10000,
+            duration: 8000,
             action: { label: "OK", onClick: () => null },
           });
           if (body.turn_player_id == user?.player_id) {
@@ -253,6 +255,15 @@ const FrikFrakPlayView: React.FC = () => {
                 action: { label: "OK", onClick: () => null },
               });
           }
+          break;
+        case "finish":
+          setWinnerPlayerId(body.winner_player_id);
+          toaster.create({
+            title: "O Jogo Terminou!",
+            type: "info",
+            duration: 80000,
+            action: { label: "OK", onClick: () => null },
+          });
           break;
         default:
           break;
@@ -347,6 +358,12 @@ const FrikFrakPlayView: React.FC = () => {
                 bottom: "10px",
                 right: "10px",
               }}
+            />
+          )}
+          {againstPlayerUser && winnerPlayerId && (
+            <GameFinishedDialog
+              adversary={againstPlayerUser}
+              user_won={user?.player_id == winnerPlayerId}
             />
           )}
         </>
