@@ -2,16 +2,19 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { IUserData, useAuth } from "../../../../../hooks/authProvider";
 import useWebSocket from "../../../../../hooks/useWebSocket";
 import Piece, { IPiecePosition } from "../../components/piece";
-import { AbsoluteCenter, Box } from "@chakra-ui/react";
+import {
+  AbsoluteCenter,
+  Box,
+  HStack,
+  Text,
+  Spinner,
+  Container,
+} from "@chakra-ui/react";
 import { Board, Line } from "../../style";
 import { BOARD_COORDINATES } from "../../constants";
 import Cell from "../../components/cell";
 import { Toaster, toaster } from "../../../../../components/ui/toaster";
 import { EmptyState } from "../../../../../components/ui/empty-state";
-import {
-  ProgressCircleRing,
-  ProgressCircleRoot,
-} from "../../../../../components/ui/progress-circle";
 import UserAvatar from "../../../../components/user-avatar";
 import GameFinishedDialog from "../../../../components/game-finished-dialog";
 
@@ -384,16 +387,42 @@ const FrikFrakPlayView: React.FC = () => {
             </Board>
           </AbsoluteCenter>
           {againstPlayerUser && (
-            <UserAvatar
-              username={againstPlayerUser.username}
-              colorPalette="red"
+            <HStack
               style={{
                 position: "absolute",
                 zIndex: 1,
                 bottom: "10px",
                 right: "10px",
               }}
-            />
+            >
+              <Container
+                background="red"
+                width="fit-content"
+                paddingTop={1}
+                paddingBottom={1}
+                paddingRight={1}
+                paddingLeft={1}
+                borderRadius={4}
+              >
+                <Text color="white" fontWeight="bold">
+                  vs
+                </Text>
+              </Container>
+              <Container
+                background="tomato"
+                paddingTop={1}
+                paddingBottom={1}
+                paddingRight={4}
+                paddingLeft={4}
+                borderRadius={4}
+              >
+                <Text fontWeight="bold">{againstPlayerUser.username}</Text>
+              </Container>
+              <UserAvatar
+                username={againstPlayerUser.username}
+                colorPalette="red"
+              />
+            </HStack>
           )}
           {againstPlayerUser && winnerPlayerId && (
             <GameFinishedDialog
@@ -405,11 +434,7 @@ const FrikFrakPlayView: React.FC = () => {
         </>
       ) : (
         <EmptyState
-          icon={
-            <ProgressCircleRoot value={null} size="lg">
-              <ProgressCircleRing cap="round" />
-            </ProgressCircleRoot>
-          }
+          icon={<Spinner size="xl" borderWidth="4px" color="orange" />}
           title="Esperando outros jogadores conectarem..."
           size="lg"
         />

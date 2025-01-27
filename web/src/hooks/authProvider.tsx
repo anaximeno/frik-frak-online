@@ -56,9 +56,6 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
 }) => {
   const [user, setUser] = useState<IUserData | null>(getStoredUser());
   const [token, setToken] = useState<string | null>(getStoredToken());
-  const [authInterceptorId, setAuthInterceptorId] = useState<number | null>(
-    null
-  );
 
   const login = async (loginData: ILoginData) => {
     try {
@@ -66,16 +63,6 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
       const authToken = authTokenResponse.data.auth_token;
 
       setToken(authToken);
-
-      if (authInterceptorId) api.interceptors.request.eject(authInterceptorId);
-
-      const interceptorId = api.interceptors.request.use((config) => {
-        const t = token ?? localStorage.getItem("auth:token");
-        if (t) config.headers.Authorization = `Token ${token}`;
-        return config;
-      });
-
-      setAuthInterceptorId(interceptorId);
 
       const userResponse = await api.get("/auth/users/me", {
         headers: { Authorization: `Token ${authToken}` },
@@ -102,10 +89,6 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
 
       localStorage.removeItem("auth:token");
       localStorage.removeItem("auth:user");
-
-      if (authInterceptorId) {
-        api.interceptors.request.eject(authInterceptorId);
-      }
     }
   };
 
@@ -129,16 +112,6 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
       const authToken = authTokenResponse.data.auth_token;
 
       setToken(authToken);
-
-      if (authInterceptorId) api.interceptors.request.eject(authInterceptorId);
-
-      const interceptorId = api.interceptors.request.use((config) => {
-        const t = token ?? localStorage.getItem("auth:token");
-        if (t) config.headers.Authorization = `Token ${t}`;
-        return config;
-      });
-
-      setAuthInterceptorId(interceptorId);
 
       localStorage.setItem("auth:token", authToken);
       localStorage.setItem("auth:user", JSON.stringify(user));
