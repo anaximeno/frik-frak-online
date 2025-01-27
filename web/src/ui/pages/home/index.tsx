@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import BackgroundImageContainer from "../../components/background-image-container";
 import background from "../../../assets/background-02.webp";
 import { Button } from "../../../components/ui/button";
+import { RiGalleryView2 } from "react-icons/ri";
+import { LuPlay } from "react-icons/lu";
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -21,9 +23,11 @@ const HomePage = () => {
         <Heading size="7xl">Frik Frak Online</Heading>
         <HStack marginTop={10}>
           <Button size="2xl" onClick={handleGalleryClick}>
+            <RiGalleryView2 />
             Galeria
           </Button>
           <Button size="2xl" onClick={handlePlayClick}>
+            <LuPlay />
             Jogar
           </Button>
         </HStack>

@@ -8,6 +8,12 @@ export interface IUserData {
   player_id?: string;
 }
 
+export interface IPlayerData {
+  id?: string;
+  profile_picture?: string | null;
+  user?: string;
+}
+
 export interface ILoginData {
   username: string;
   password: string;
@@ -97,7 +103,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
 
   const register = async (registerData: IPlayerRegisterData) => {
     try {
-      const playerData = await api.post("players/", registerData);
+      const playerData = await api.post("game/players", registerData);
 
       const user: IUserData = {
         id: playerData.data.user_id,
@@ -135,7 +141,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
   };
 
   const fetchPlayerUserInfo = async (playerId: string): Promise<IUserData> => {
-    const playerData = await api.get(`players/${playerId}`);
+    const playerData = await api.get(`game/players/${playerId}`);
     const user: IUserData = {
       id: playerData.data.user_id,
       email: playerData.data.email,

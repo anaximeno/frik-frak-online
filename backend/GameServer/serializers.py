@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from djoser.serializers import UserSerializer as DjoserUserSerializer
-from .models import Player, User
+from .models import Player, Game
 
 
 class GetPlayerSerializer(serializers.ModelSerializer):
@@ -13,10 +13,18 @@ class GetPlayerSerializer(serializers.ModelSerializer):
         depth = 1
 
     def get_user_id(self, obj):
-        return obj.user.id
+        try:
+            player = Player.objects.get(id=obj.id)
+            return player.user.pk
+        except Player.DoesNotExist:
+            return None
 
     def get_username(self, obj):
-        return obj.user.username
+        try:
+            player = Player.objects.get(id=obj.id)
+            return player.user.username
+        except Player.DoesNotExist:
+            return None
 
 
 class CreatePlayerSerializer(serializers.ModelSerializer):
@@ -42,3 +50,13 @@ class UserSerializer(DjoserUserSerializer):
             return player.id
         except Player.DoesNotExist:
             return None
+
+
+class GameSerializer(serializers.ModelSerializer):
+    winner = GetPlayerSerializer()
+    players = serializers.ListSerializer(child=GetPlayerSerializer())
+
+    class Meta:
+        model = Game
+        fields = "__all__"
+        depth = 1

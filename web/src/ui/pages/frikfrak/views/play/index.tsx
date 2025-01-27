@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { IUserData, useAuth } from "../../../../../hooks/authProvider";
 import useWebSocket from "../../../../../hooks/useWebSocket";
 import Piece, { IPiecePosition } from "../../components/piece";
-import { Box } from "@chakra-ui/react";
+import { AbsoluteCenter, Box } from "@chakra-ui/react";
 import { Board, Line } from "../../style";
 import { BOARD_COORDINATES } from "../../constants";
 import Cell from "../../components/cell";
@@ -323,61 +323,63 @@ const FrikFrakPlayView: React.FC = () => {
       <Toaster />
       {gameId.current ? (
         <>
-          <Board>
-            <Line style={{ transform: "rotate(45deg)", width: "150%" }} />
-            <Line style={{ transform: "rotate(-45deg)", width: "150%" }} />
-            <Line
-              style={{ transform: "rotate(-90deg)", translate: "150px 0" }}
-            />
-            <Line style={{ transform: "rotate(-90deg)" }} />
-            <Line
-              style={{ transform: "rotate(-90deg)", translate: "-150px 0" }}
-            />
-            <Line style={{ translate: "0px -150px" }} />
-            <Line />
-            <Line style={{ translate: "0px 150px" }} />
-            {BOARD_COORDINATES.map((row, i) =>
-              row.map((cell, j) => (
-                <Cell
-                  key={`${i}-${j}`}
-                  x={cell.x}
-                  y={cell.y}
-                  onDropItem={(e) => handleOnCellDrop(e, i, j)}
-                  onClick={() => handleOnCellClick(i, j)}
-                  disable={turnPlayerId !== user?.player_id}
-                />
-              ))
-            )}
-            {boardState.map((row, i) =>
-              row.map((pid, j) => {
-                if (pid === null) return <></>;
-                const coord = BOARD_COORDINATES[i][j];
-                return (
-                  <Piece
-                    pid={pid}
-                    x={coord.x * 3}
-                    y={coord.y * 3}
-                    onClick={() => setSelectedPiece({ pid, i, j })}
-                    isSelected={
-                      selectedPiece?.pid == pid &&
-                      selectedPiece?.i == i &&
-                      selectedPiece?.j == j
-                    }
-                    onDragStart={clearPieceSelection}
-                    i={i}
-                    j={j}
-                    color={pid === user?.player_id ? "blue" : "red"}
-                    draggable
-                    disable={
-                      pid !== user?.player_id ||
-                      turnPlayerId !== user?.player_id ||
-                      canAddNewPieces
-                    }
+          <AbsoluteCenter>
+            <Board>
+              <Line style={{ transform: "rotate(45deg)", width: "150%" }} />
+              <Line style={{ transform: "rotate(-45deg)", width: "150%" }} />
+              <Line
+                style={{ transform: "rotate(-90deg)", translate: "150px 0" }}
+              />
+              <Line style={{ transform: "rotate(-90deg)" }} />
+              <Line
+                style={{ transform: "rotate(-90deg)", translate: "-150px 0" }}
+              />
+              <Line style={{ translate: "0px -150px" }} />
+              <Line />
+              <Line style={{ translate: "0px 150px" }} />
+              {BOARD_COORDINATES.map((row, i) =>
+                row.map((cell, j) => (
+                  <Cell
+                    key={`${i}-${j}`}
+                    x={cell.x}
+                    y={cell.y}
+                    onDropItem={(e) => handleOnCellDrop(e, i, j)}
+                    onClick={() => handleOnCellClick(i, j)}
+                    disable={turnPlayerId !== user?.player_id}
                   />
-                );
-              })
-            )}
-          </Board>
+                ))
+              )}
+              {boardState.map((row, i) =>
+                row.map((pid, j) => {
+                  if (pid === null) return <></>;
+                  const coord = BOARD_COORDINATES[i][j];
+                  return (
+                    <Piece
+                      pid={pid}
+                      x={coord.x * 3}
+                      y={coord.y * 3}
+                      onClick={() => setSelectedPiece({ pid, i, j })}
+                      isSelected={
+                        selectedPiece?.pid == pid &&
+                        selectedPiece?.i == i &&
+                        selectedPiece?.j == j
+                      }
+                      onDragStart={clearPieceSelection}
+                      i={i}
+                      j={j}
+                      color={pid === user?.player_id ? "blue" : "red"}
+                      draggable
+                      disable={
+                        pid !== user?.player_id ||
+                        turnPlayerId !== user?.player_id ||
+                        canAddNewPieces
+                      }
+                    />
+                  );
+                })
+              )}
+            </Board>
+          </AbsoluteCenter>
           {againstPlayerUser && (
             <UserAvatar
               username={againstPlayerUser.username}

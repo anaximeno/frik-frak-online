@@ -1,9 +1,27 @@
-from rest_framework.generics import get_object_or_404
+from rest_framework.generics import get_object_or_404, GenericAPIView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
-from .models import Player, User
-from .serializers import CreatePlayerSerializer, GetPlayerSerializer
+from rest_framework.settings import api_settings
+from rest_framework import status, viewsets
+from .models import Player, User, Game
+from .serializers import CreatePlayerSerializer, GetPlayerSerializer, GameSerializer
+
+
+class GameView(viewsets.ViewSet):
+    pagination_class = api_settings.DEFAULT_PAGINATION_CLASS
+
+    def list(self, request):
+        queryset = Game.objects.all().order_by("-created_at")
+        serializer = GameSerializer(queryset, many=True)
+        paginator = self.pagination_class()
+        data = paginator.paginate_queryset(serializer.data, request)
+        return paginator.get_paginated_response(data)
+
+    def retrieve(self, request, pk=None):
+        queryset = Game.objects.all()
+        game = get_object_or_404(queryset, pk=pk)
+        serializer = GameSerializer(game)
+        return Response(serializer.data)
 
 
 # Create your views here.

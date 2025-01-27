@@ -52,6 +52,7 @@ const AppDrawer: React.FC = () => {
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
             eiusmod tempor incididunt ut labore et dolore magna aliqua.
           </p>
+          {/** Show player stats */}
         </DrawerBody>
         <DrawerFooter>
           <DrawerActionTrigger asChild>
