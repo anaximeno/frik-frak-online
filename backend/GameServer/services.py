@@ -123,15 +123,12 @@ class GamingService:
 
         winner = None
         for line in lines:
-            w = p1 if line[0] == str(p1.id) else p2
-            for i in range(1, 3):
-                if line[i] != str(w.id):
-                    w = None
-                    break
-            if w != None:
-                winner = w
+            if line.count(str(p1.id)) == 3:
+                winner = p1
                 break
-
+            elif line.count(str(p2.id)) == 3:
+                winner = p2
+                break
         return winner
 
     def player_in_game(self, player_id: str, game_id: str) -> bool:
