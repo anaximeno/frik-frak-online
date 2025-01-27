@@ -18,6 +18,12 @@ import {
   HStack,
   Link,
 } from "@chakra-ui/react";
+import BreadcrumbBox from "../../components/breadcrump-box";
+import {
+  BreadcrumbCurrentLink,
+  BreadcrumbLink,
+  BreadcrumbRoot,
+} from "../../../components/ui/breadcrumb";
 
 interface FormValues {
   username: string;
@@ -141,6 +147,12 @@ const RegisterPage = () => {
           </Card.Root>
         </form>
       </VStack>
+      <BreadcrumbBox>
+        <BreadcrumbRoot>
+          <BreadcrumbLink href="/#">Página Principal</BreadcrumbLink>
+          <BreadcrumbCurrentLink>Registrar</BreadcrumbCurrentLink>
+        </BreadcrumbRoot>
+      </BreadcrumbBox>
     </BackgroundImageContainer>
   );
 };

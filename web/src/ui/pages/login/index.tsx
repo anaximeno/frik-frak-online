@@ -18,6 +18,12 @@ import {
 } from "@chakra-ui/react";
 import background from "../../../assets/background-02.webp";
 import BackgroundImageContainer from "../../components/background-image-container";
+import BreadcrumbBox from "../../components/breadcrump-box";
+import {
+  BreadcrumbCurrentLink,
+  BreadcrumbLink,
+  BreadcrumbRoot,
+} from "../../../components/ui/breadcrumb";
 
 interface FormValues {
   username: string;
@@ -129,6 +135,12 @@ const LoginPage: React.FC = () => {
           </Card.Root>
         </form>
       </VStack>
+      <BreadcrumbBox>
+        <BreadcrumbRoot>
+          <BreadcrumbLink href="/#">Página Principal</BreadcrumbLink>
+          <BreadcrumbCurrentLink>Entrar</BreadcrumbCurrentLink>
+        </BreadcrumbRoot>
+      </BreadcrumbBox>
     </BackgroundImageContainer>
   );
 };

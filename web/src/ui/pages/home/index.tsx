@@ -5,6 +5,11 @@ import background from "../../../assets/background-02.webp";
 import { Button } from "../../../components/ui/button";
 import { RiGalleryView2 } from "react-icons/ri";
 import { LuPlay } from "react-icons/lu";
+import {
+  BreadcrumbCurrentLink,
+  BreadcrumbRoot,
+} from "../../../components/ui/breadcrumb";
+import BreadcrumbBox from "../../components/breadcrump-box";
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -32,6 +37,11 @@ const HomePage = () => {
           </Button>
         </HStack>
       </VStack>
+      <BreadcrumbBox>
+        <BreadcrumbRoot>
+          <BreadcrumbCurrentLink>Página Principal</BreadcrumbCurrentLink>
+        </BreadcrumbRoot>
+      </BreadcrumbBox>
     </BackgroundImageContainer>
   );
 };

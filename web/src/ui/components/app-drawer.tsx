@@ -78,7 +78,7 @@ const AppDrawer: React.FC = () => {
         <DrawerFooter>
           <DrawerActionTrigger asChild>
             <Button colorPalette="teal" variant="outline" onClick={logout}>
-              <TbLogout2 /> Log Out
+              <TbLogout2 /> Sair
             </Button>
           </DrawerActionTrigger>
         </DrawerFooter>
