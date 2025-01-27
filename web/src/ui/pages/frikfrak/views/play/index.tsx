@@ -271,6 +271,7 @@ const FrikFrakPlayView: React.FC = () => {
           }
           break;
         case "finish":
+          setBoardState(body.board);
           setWinnerPlayerId(body.winner_player_id);
           toaster.create({
             title: "O Jogo Terminou!",

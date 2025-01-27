@@ -62,7 +62,6 @@ class GamingService:
         if "from" in move and (pos_from := move["from"]):
             line, col = pos_from["line"], pos_from["col"]
             board[line][col] = None
-
         if "to" in move and (pos_to := move["to"]):
             line, col = pos_to["line"], pos_to["col"]
             board[line][col] = player_id
@@ -70,30 +69,70 @@ class GamingService:
         game.board = board
         game.save(update_fields=["board"])
 
-        [p1, p2] = [str(p.id) for p in game.players.get_queryset()]
-        turn_player = p2 if player_id == p1 else p1
+        [p1, p2] = game.players.get_queryset()
+        turn_player = str(p2.id) if player_id == str(p1.id) else str(p1.id)
 
-        # TODO
-        # winner = self.check_game_winner(game.board)
-        # if winner:
-        #     game.winner = winner
-        #     game.save(update_fields=["winner"])
-
-        async_to_sync(self.channel_layer.group_send)(
-            "game-play-group",
-            {
-                "type": "game.update",
-                "game_id": str(game.id),
-                "content": {
-                    "board": game.board,
-                    "turn_player_id": turn_player,
-                    "players_ids": [p1, p2],
+        if winner := self.check_game_winner(game.board, p1, p2):
+            game.winner = winner
+            game.state = "ended"
+            game.save(update_fields=["winner", "state"])
+            async_to_sync(self.channel_layer.group_send)(
+                "game-play-group",
+                {
+                    "type": "game.finish",
+                    "game_id": str(game.id),
+                    "content": {
+                        "board": game.board,
+                        "turn_player_id": None,
+                        "players_ids": [str(p1.id), str(p2.id)],
+                        "winner_player_id": str(game.winner.id),
+                        "won_for": "line-formed",
+                    },
                 },
-            },
+            )
+        else:
+            async_to_sync(self.channel_layer.group_send)(
+                "game-play-group",
+                {
+                    "type": "game.update",
+                    "game_id": str(game.id),
+                    "content": {
+                        "board": game.board,
+                        "turn_player_id": turn_player,
+                        "players_ids": [str(p1.id), str(p2.id)],
+                    },
+                },
+            )
+
+    def check_game_winner(
+        self, board: list[list[str]], p1: Player, p2: Player
+    ) -> Player | None:
+        lines = (
+            # Rows
+            board[0],
+            board[1],
+            board[2],
+            # Columns
+            (board[0][0], board[1][0], board[2][0]),
+            (board[0][1], board[1][1], board[2][1]),
+            (board[0][2], board[1][2], board[2][2]),
+            # Diagonals
+            (board[0][0], board[1][1], board[2][2]),
+            (board[0][2], board[1][1], board[2][0]),
         )
 
-    def check_game_winner(self, board: list[list[str]]) -> str | None:
-        return None  # XXX: properly implement this
+        winner = None
+        for line in lines:
+            w = p1 if line[0] == str(p1.id) else p2
+            for i in range(1, 3):
+                if line[i] != str(w.id):
+                    w = None
+                    break
+            if w != None:
+                winner = w
+                break
+
+        return winner
 
     def player_in_game(self, player_id: str, game_id: str) -> bool:
         player = Player.objects.get(id=player_id)
@@ -102,7 +141,6 @@ class GamingService:
     def handle_player_disconnected(self, player_id: str) -> None:
         if player_id in self.player_wait_list:
             self.player_wait_list.remove(player_id)
-
         for game in Game.objects.filter(players__id=player_id, state="ongoing"):
             [p1, p2] = game.players.get_queryset()
             player = Player.objects.get(id=player_id)
