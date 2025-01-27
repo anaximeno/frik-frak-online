@@ -11,8 +11,8 @@ const HomePage = () => {
     navigate("/frik-frak/play");
   };
 
-  const handleWatchClick = () => {
-    navigate("/frik-frak/watch");
+  const handleGalleryClick = () => {
+    navigate("/frik-frak/gallery");
   };
 
   return (
@@ -20,8 +20,8 @@ const HomePage = () => {
       <VStack paddingTop={100}>
         <Heading size="7xl">Frik Frak Online</Heading>
         <HStack marginTop={10}>
-          <Button size="2xl" onClick={handleWatchClick}>
-            Assistir
+          <Button size="2xl" onClick={handleGalleryClick}>
+            Galeria
           </Button>
           <Button size="2xl" onClick={handlePlayClick}>
             Jogar

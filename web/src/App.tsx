@@ -23,11 +23,9 @@ const App = () => {
               element={<FrikFrakPage view="play" />}
             />
             <Route
-              path="/frik-frak/watch"
-              element={<FrikFrakPage view="watch" />}
+              path="/frik-frak/gallery"
+              element={<FrikFrakPage view="gallery" />}
             />
-            {/* TODO: shows ongoing game play*/}
-            {/* <Route path="/frik-frak/watch/:gameId" element={<FrikFrakPage />} /> */}
             {/* TODO: shows leaderboard*/}
             {/* <Route path="/frik-frak/leaderboard" element={<FrikFrakPage />} /> */}
           </Route>
