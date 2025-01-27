@@ -4,7 +4,12 @@ from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from rest_framework import status, viewsets
 from .models import Player, User, Game
-from .serializers import CreatePlayerSerializer, GetPlayerSerializer, GameSerializer
+from .serializers import (
+    CreatePlayerSerializer,
+    GetPlayerSerializer,
+    GameSerializer,
+    GetPlayerStatsSerializer,
+)
 
 
 class GameView(viewsets.ViewSet):
@@ -24,7 +29,6 @@ class GameView(viewsets.ViewSet):
         return Response(serializer.data)
 
 
-# Create your views here.
 @api_view(("POST",))
 def create_player(request):
     serialized = CreatePlayerSerializer(data=request.data)
@@ -40,7 +44,14 @@ def create_player(request):
 
 
 @api_view(("GET",))
-def get_player_by_id(request, pk):
+def get_player_by_id(request, pk: str):
     player = get_object_or_404(Player, id=pk)
     player_serialized = GetPlayerSerializer(player)
     return Response(player_serialized.data, status=status.HTTP_200_OK)
+
+
+@api_view(("GET",))
+def get_player_stats(request, pk: str):
+    player = get_object_or_404(Player, id=pk)
+    player_stats_serialized = GetPlayerStatsSerializer(player)
+    return Response(player_stats_serialized.data)

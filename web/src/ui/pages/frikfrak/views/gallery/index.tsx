@@ -44,6 +44,7 @@ const FrikFrakGalleryView: React.FC = () => {
                 <Table.ColumnHeader>VS</Table.ColumnHeader>
                 <Table.ColumnHeader>Estado</Table.ColumnHeader>
                 <Table.ColumnHeader>Vencedor</Table.ColumnHeader>
+                <Table.ColumnHeader>Início do Jogo</Table.ColumnHeader>
                 <Table.ColumnHeader textAlign="end">
                   Última Atualização
                 </Table.ColumnHeader>
@@ -59,6 +60,11 @@ const FrikFrakGalleryView: React.FC = () => {
                     {item.state == "ongoing" ? "Em Jogo" : "Terminou"}
                   </Table.Cell>
                   <Table.Cell>{item?.winner?.username ?? "-"}</Table.Cell>
+                  <Table.Cell textAlign="end">
+                    {item?.created_at
+                      ? new Date(item.created_at).toLocaleString()
+                      : "-"}
+                  </Table.Cell>
                   <Table.Cell textAlign="end">
                     {item?.updated_at
                       ? new Date(item.updated_at).toLocaleString()

@@ -3,6 +3,20 @@ from djoser.serializers import UserSerializer as DjoserUserSerializer
 from .models import Player, Game
 
 
+class UserSerializer(DjoserUserSerializer):
+    player_id = serializers.SerializerMethodField()
+
+    class Meta(DjoserUserSerializer.Meta):
+        fields = DjoserUserSerializer.Meta.fields + ("player_id",)
+
+    def get_player_id(self, obj):
+        try:
+            player = Player.objects.get(user=obj)
+            return player.id
+        except Player.DoesNotExist:
+            return None
+
+
 class GetPlayerSerializer(serializers.ModelSerializer):
     username = serializers.SerializerMethodField()
     user_id = serializers.SerializerMethodField()
@@ -38,16 +52,42 @@ class CreatePlayerSerializer(serializers.ModelSerializer):
         fields = ("username", "email", "password")
 
 
-class UserSerializer(DjoserUserSerializer):
-    player_id = serializers.SerializerMethodField()
+class GetPlayerStatsSerializer(serializers.ModelSerializer):
+    username = serializers.SerializerMethodField()
+    games_played = serializers.SerializerMethodField()
+    games_won = serializers.SerializerMethodField()
+    games_lost = serializers.SerializerMethodField()
 
-    class Meta(DjoserUserSerializer.Meta):
-        fields = DjoserUserSerializer.Meta.fields + ("player_id",)
+    class Meta:
+        model = Player
+        fields = ("id", "username", "games_played", "games_won", "games_lost")
+        depth = 1
 
-    def get_player_id(self, obj):
+    def get_games_played(self, obj):
         try:
-            player = Player.objects.get(user=obj)
-            return player.id
+            games = Game.objects.filter(players__id=obj.id)
+            return games.count()
+        except Game.DoesNotExist:
+            return None
+
+    def get_games_won(self, obj):
+        try:
+            games = Game.objects.filter(winner__id=obj.id)
+            return games.count()
+        except Game.DoesNotExist:
+            return None
+
+    def get_games_lost(self, obj):
+        try:
+            games = Game.objects.exclude(winner__id=obj.id)
+            return games.count()
+        except Game.DoesNotExist:
+            return None
+
+    def get_username(self, obj):
+        try:
+            player = Player.objects.get(id=obj.id)
+            return player.user.username
         except Player.DoesNotExist:
             return None
 

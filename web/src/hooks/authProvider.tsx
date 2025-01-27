@@ -23,6 +23,13 @@ export interface IPlayerRegisterData extends ILoginData {
   email: string;
 }
 
+export interface IPlayerStats {
+  username: string;
+  games_won: string;
+  games_played: string;
+  games_lost: string;
+}
+
 interface AuthContextType {
   user: IUserData | null;
   token: string | null;
@@ -30,6 +37,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   register: (registerDate: IPlayerRegisterData) => Promise<void>;
   fetchPlayerUserInfo: (playerId: string) => Promise<IUserData>;
+  fetchPlayerStats: (playerId: string) => Promise<IPlayerStats>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -141,19 +149,32 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
   };
 
   const fetchPlayerUserInfo = async (playerId: string): Promise<IUserData> => {
-    const playerData = await api.get(`game/players/${playerId}`);
+    const response = await api.get(`game/players/${playerId}`);
     const user: IUserData = {
-      id: playerData.data.user_id,
-      email: playerData.data.email,
-      username: playerData.data.username,
-      player_id: playerData.data.id,
+      id: response.data.user_id,
+      email: response.data.email,
+      username: response.data.username,
+      player_id: response.data.id,
     };
     return user;
   };
 
+  const fetchPlayerStats = async (playerId: string): Promise<IPlayerStats> => {
+    const response = await api.get(`game/players/${playerId}/stats`);
+    return response.data;
+  };
+
   return (
     <AuthContext.Provider
-      value={{ user, token, login, logout, register, fetchPlayerUserInfo }}
+      value={{
+        user,
+        token,
+        login,
+        logout,
+        register,
+        fetchPlayerUserInfo,
+        fetchPlayerStats,
+      }}
     >
       {children}
     </AuthContext.Provider>
